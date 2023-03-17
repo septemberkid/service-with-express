@@ -1,0 +1,6 @@
+/.idea
+/.wireit
+/dist
+/logs
+/node_modules
+.env.development

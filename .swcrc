@@ -1,0 +1,40 @@
+{
+  "jsc": {
+    "parser": {
+      "syntax": "typescript",
+      "tsx": false,
+      "dynamicImport": true,
+      "decorators": true
+    },
+    "transform": {
+      "legacyDecorator": true,
+      "decoratorMetadata": true
+    },
+    "target": "es2017",
+    "externalHelpers": false,
+    "keepClassNames": true,
+    "loose": false,
+    "minify": {
+      "compress": true,
+      "mangle": false
+    },
+    "baseUrl": "src",
+    "paths": {
+      "@config": ["config"],
+      "@controller/*": ["controller/*"],
+      "@entity/*": ["entity/*"],
+      "@exception/*": ["exception/*"],
+      "@interface/*": ["interface/*"],
+      "@middleware/*": ["middleware/*"],
+      "@model/*": ["model/*"],
+      "@service/*": ["service/*"],
+      "@util/*": ["util/*"]
+    }
+  },
+  "module": {
+    "type": "commonjs"
+  },
+  "exclude": [
+    "__tests__",
+  ]
+}

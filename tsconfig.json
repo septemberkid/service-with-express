@@ -1,0 +1,71 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "target": "es2017",
+    "lib": [
+      "es2017",
+      "esnext.asynciterable"
+    ],
+    "typeRoots": [
+      "node_modules/@types",
+      "global.d.ts"
+    ],
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "pretty": true,
+    "sourceMap": true,
+    "declaration": true,
+    "outDir": "dist",
+    "allowJs": true,
+    "noEmit": false,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "importHelpers": true,
+    "skipLibCheck": true,
+    "baseUrl": "src",
+    "paths": {
+      "@config": [
+        "config"
+      ],
+      "@controller/*": [
+        "controller/*"
+      ],
+      "@entity/*": [
+        "entity/*"
+      ],
+      "@exception/*": [
+        "exception/*"
+      ],
+      "@interface/*": [
+        "interface/*"
+      ],
+      "@middleware/*": [
+        "middleware/*"
+      ],
+      "@model/*": [
+        "model/*"
+      ],
+      "@service*": [
+        "service/*"
+      ],
+      "@util/*": [
+        "util/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.json",
+    ".env"
+  ],
+  "exclude": [
+    "node_modules",
+    "logs",
+    "__tests__",
+    "__tests__/**/*.test.ts"
+  ]
+}
