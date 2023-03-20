@@ -7,8 +7,7 @@
       "esnext.asynciterable"
     ],
     "typeRoots": [
-      "node_modules/@types",
-      "global.d.ts"
+      "node_modules/@types"
     ],
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
@@ -34,23 +33,26 @@
       "@controller/*": [
         "controller/*"
       ],
+      "@core/*": [
+        "core/*"
+      ],
+      "@dto/*": [
+        "dto/*"
+      ],
       "@entity/*": [
         "entity/*"
+      ],
+      "@enums/*": [
+        "enums/*"
       ],
       "@exception/*": [
         "exception/*"
       ],
-      "@interface/*": [
-        "interface/*"
-      ],
       "@middleware/*": [
         "middleware/*"
       ],
-      "@model/*": [
-        "model/*"
-      ],
-      "@service*": [
-        "service/*"
+      "@repository/*": [
+        "repository/*"
       ],
       "@util/*": [
         "util/*"
@@ -60,7 +62,8 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.json",
-    ".env"
+    ".env",
+    "global.d.ts"
   ],
   "exclude": [
     "node_modules",

@@ -1,0 +1,14 @@
+{
+	"error": {
+		"general": "Ops, Something went wrong.",
+		"required_client_name": "The 'X-CLIENT-NAME' header is required for this API endpoint.",
+		"invalid_content_type": "The 'Content-Type' header is not valid.",
+		"required_key": "The 'X-KEY' header is required for this API endpoint.",
+		"required_timestamp": "The 'X-TIMESTAMP' header is required for this API endpoint.",
+		"invalid_client": "Your application client is not valid. Please contact the administrator for assistance.",
+		"invalid_timestamp_format": "The format of the 'X-TIMESTAMP' header is invalid. Please ensure that the header value is a valid timestamp in ISO 8601 format (YYYY-MM-DDTHH:mm:ss).",
+		"invalid_key": "The value of the 'X-KEY' header is invalid. Please ensure that you are using a valid X-KEY and try again. If you continue to experience issues, please contact the administrator for assistance.",
+		"expired_key": "The 'X-KEY' header value has expired. Please ensure that you are using a current and valid API key."
+	},
+	"hello": "hello"
+}
