@@ -1,24 +1,14 @@
 import {
-  BaseHttpController,
   controller,
   httpGet,
 } from 'inversify-express-utils';
-import AppUserRepository from '@repository/app-user.repository';
-import { inject } from 'inversify';
+import BaseController from '@controller/base.controller';
 
 @controller('/')
-export default class HomeController extends BaseHttpController {
-  @inject('AppUserRepository')
-  private readonly _appUserRepository: AppUserRepository;
+export default class HomeController extends BaseController {
 
   @httpGet('')
   async index() {
-    const currentUser = await this._appUserRepository.getCurrentUser();
-    return this.json(
-      {
-        data: currentUser,
-      },
-      200
-    );
+    return this.success<string>(null, 'Server is running...');
   }
 }
