@@ -6,6 +6,8 @@ import winston from 'winston';
 import { Request, Response } from 'express';
 import { Req, Res } from 'routing-controllers';
 import useHeaderMiddleware from '@middleware/header.middleware';
+import useRequestMiddleware from '@middleware/request.middleware';
+import AuthDto from '@dto/auth.dto';
 
 @controller('/auth')
 export default class AuthController extends BaseController {
@@ -14,8 +16,8 @@ export default class AuthController extends BaseController {
 
   @httpPost(
     '/login',
-    useHeaderMiddleware()
-    // requestMiddleware<AuthDto>(AuthDto)
+    useHeaderMiddleware(),
+    useRequestMiddleware(AuthDto)
   )
   async login(@Req() req: Request, @Res() res: Response) {
     return this.success(res.__('hello'));

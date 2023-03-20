@@ -3,6 +3,7 @@ import HttpException from '@exception/http.exception';
 import Logger from '@util/logger';
 import ResponseDto from '@dto/response.dto';
 import { NODE_ENV } from '@config';
+import ValidationException from '@exception/validation.exception';
 
 const useErrorMiddleware = (
   error: HttpException,
@@ -11,6 +12,10 @@ const useErrorMiddleware = (
   _next: NextFunction
 ) => {
   try {
+    if (error instanceof ValidationException) {
+      return handleValidationException(res, error);
+    }
+
     const httpCode: number = error.httpCode || 500;
     const message: string = error.message || res.__('error.general');
 
@@ -28,4 +33,8 @@ const useErrorMiddleware = (
     _next(error);
   }
 };
+
+const handleValidationException = (res: Response, validationException: ValidationException) => {
+  return res.status(400).json(validationException.validations)
+}
 export default useErrorMiddleware;
