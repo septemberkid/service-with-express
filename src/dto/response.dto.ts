@@ -1,19 +1,8 @@
-export interface IPageMeta {
-  readonly limit: number;
-  readonly offset: number;
-  readonly page: number;
-  readonly pages: number;
-  readonly total: number;
-}
-
-interface IResponse<T> {
-  readonly message: string;
-  readonly result: T;
-  readonly meta?: IPageMeta;
-}
+import ResponseInterface from '@interface/response.interface';
+import PageMetaInterface from '@interface/page-meta.interface';
 
 export default class ResponseDto {
-  static fail(message: string): IResponse<unknown> {
+  static fail(message: string): ResponseInterface<unknown> {
     return {
       message,
       result: null,
@@ -21,7 +10,7 @@ export default class ResponseDto {
     };
   }
 
-  static success<T>(result: T, message: string = null): IResponse<T> {
+  static success<T>(result: T, message: string = null): ResponseInterface<T> {
     return {
       message: message,
       result: result,
@@ -29,7 +18,7 @@ export default class ResponseDto {
     };
   }
 
-  static paginated<T>(result: T[], meta: IPageMeta, message: string = null): IResponse<T[]> {
+  static paginated<T>(result: T[], meta: PageMetaInterface, message: string = null): ResponseInterface<T[]> {
     return {
       message: message,
       result: result,
