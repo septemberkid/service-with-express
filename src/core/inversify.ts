@@ -13,8 +13,6 @@ export const inversifyBindings = new AsyncContainerModule(
     const databaseClient: DatabaseClient = new DatabaseClient();
     const connection = await databaseClient.connect();
     if (connection) {
-      // Run Migrations
-      // await connection.getMigrator().up();
       // Connection Bindings
       bind<MikroORM<PostgreSqlDriver>>(
         TYPES.DATABASE_CONNECTION
