@@ -62,6 +62,24 @@ export const inversifyBindings = new AsyncContainerModule(
       return repositories.map((c) => c.default);
     });
     repositories.forEach((c) => bind(c.name).to(c));
+    // load services
+    const services = await new Promise((resolve, _) => {
+      glob(
+        path.join(
+          path.dirname(__dirname),
+          '/service/**/*.service.{ts,js}'
+        ),
+        (_, files) => {
+          resolve(files);
+        }
+      );
+    }).then(async (files: string[]) => {
+      const services = await Promise.all(
+        files.map((f) => import(f.replace(__dirname, '.')))
+      );
+      return services.map((c) => c.default);
+    });
+    services.forEach((c) => bind(c.name).to(c));
     // binding logger
     bind<winston.Logger>(TYPES.LOGGER).toConstantValue(Logger);
   }

@@ -48,11 +48,17 @@
       "@exception/*": [
         "exception/*"
       ],
+      "@interface/*": [
+        "interface/*"
+      ],
       "@middleware/*": [
         "middleware/*"
       ],
       "@repository/*": [
         "repository/*"
+      ],
+      "@service/*": [
+        "service/*"
       ],
       "@util/*": [
         "util/*"

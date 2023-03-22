@@ -22,11 +22,14 @@
     "paths": {
       "@config": ["config"],
       "@controller/*": ["controller/*"],
+      "@core/*": ["core/*"],
+      "@dto/*": ["dto/*"],
       "@entity/*": ["entity/*"],
+      "@enums/*": ["enums/*"],
       "@exception/*": ["exception/*"],
       "@interface/*": ["interface/*"],
       "@middleware/*": ["middleware/*"],
-      "@model/*": ["model/*"],
+      "@repository/*": ["repository/*"],
       "@service/*": ["service/*"],
       "@util/*": ["util/*"]
     }
