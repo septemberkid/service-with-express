@@ -35,6 +35,6 @@ const useErrorMiddleware = (
 };
 
 const handleValidationException = (res: Response, validationException: ValidationException) => {
-  return res.status(400).json(validationException.validations)
+  return res.status(400).json(ResponseDto.validator(validationException.validations))
 }
 export default useErrorMiddleware;

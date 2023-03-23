@@ -10,6 +10,14 @@ export default class ResponseDto {
     };
   }
 
+  static validator(errors: {[key: string] : string[]}): ResponseInterface<unknown> {
+    return {
+      message: 'Please check your input',
+      result: errors,
+      meta: null,
+    };
+  }
+
   static success<T>(result: T, message: string = null): ResponseInterface<T> {
     return {
       message: message,
