@@ -3,6 +3,7 @@ import process from 'process';
 import { Options } from '@mikro-orm/core';
 import { PostgreSqlDriver } from '@mikro-orm/postgresql';
 import path from 'path';
+import { ClientOptions } from 'minio';
 config({
   path: `.env.${process.env.NODE_ENV || 'development'}`,
 });
@@ -24,6 +25,11 @@ export const {
   DB_IDLE_TIMEOUT,
   DB_MAX_POOL,
   DB_MIN_POOL,
+  MINIO_ENDPOINT,
+  MINIO_PORT,
+  MINIO_USE_SSL,
+  MINIO_ACCESS_KEY,
+  MINIO_SECRET_KEY
 } = process.env;
 
 export const dbConfig: Options<PostgreSqlDriver> = {
@@ -48,3 +54,10 @@ export const dbConfig: Options<PostgreSqlDriver> = {
     transactional: true,
   },
 };
+export const minioConfig: ClientOptions = {
+  endPoint: MINIO_ENDPOINT,
+  port: Number(MINIO_PORT) || 9090,
+  useSSL: MINIO_USE_SSL == 'true',
+  accessKey: MINIO_ACCESS_KEY,
+  secretKey: MINIO_SECRET_KEY
+}

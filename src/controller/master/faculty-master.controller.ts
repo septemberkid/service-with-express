@@ -1,9 +1,13 @@
 import { inject } from 'inversify';
 import FacultyMasterRepository from '@repository/master/faculty-master.repository';
-import { controller, httpGet, queryParam, requestParam } from 'inversify-express-utils';
+import { controller, httpGet, requestParam } from 'inversify-express-utils';
 import useHeaderMiddleware from '@middleware/header.middleware';
 import BaseController from '@controller/base.controller';
 import { populateWhere } from '@util/query';
+import useRequestMiddleware from '@middleware/request.middleware';
+import FacultyPaginatedRequestDto from '@dto/master/faculty/faculty-paginated-request.dto';
+import { plainToInstance } from 'class-transformer';
+import { requestQuery } from '@util/decorator';
 
 @controller('/master/faculty')
 export default class FacultyMasterController extends BaseController {
@@ -16,22 +20,21 @@ export default class FacultyMasterController extends BaseController {
   )
   async retrieve(@requestParam('xid') xid: string) {
     const result = await this._repository.retrieve<string>(xid);
-    return this.success(result.toJSON(true));
+    return this.success(result);
   }
 
-  @httpGet('', useHeaderMiddleware())
-  async paginatedList(
-    @queryParam('limit') limit = 10,
-    @queryParam('offset') offset = 0,
-    @queryParam('name') name: string = null,
-    @queryParam('order') order: string = null,
-  ) {
+  @httpGet('',
+    useHeaderMiddleware(),
+    useRequestMiddleware(FacultyPaginatedRequestDto, 'query')
+  )
+  async paginatedList(@requestQuery() query: FacultyPaginatedRequestDto) {
+    query = plainToInstance(FacultyPaginatedRequestDto, query);
     const where = populateWhere({
       ilike: {
-        name: wrap => wrap(name, 'both')
+        name: wrap => wrap(query.name, 'both')
       },
     })
-    const { result, meta } = await this._repository.pagination(where, order, limit, offset);
+    const { result, meta } = await this._repository.pagination(where, query);
     return this.paginated(result, meta);
   }
 

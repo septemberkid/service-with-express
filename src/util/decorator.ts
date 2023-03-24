@@ -1,6 +1,7 @@
-import { ValidateBy, buildMessage } from 'class-validator';
+import { buildMessage, ValidateBy } from 'class-validator';
+import { PARAMETER_TYPE, params } from 'inversify-express-utils';
+import VALIDATION from '@enums/validation.enum';
 
-const SPECIFIC_EMAIL_DOMAIN  = 'SPECIFIC_EMAIL_DOMAIN';
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 const checkEmailDomain = (email: string, domain: string) : boolean => {
@@ -9,10 +10,12 @@ const checkEmailDomain = (email: string, domain: string) : boolean => {
 }
 export const SpecificEmailDomain = (domain: string): PropertyDecorator => {
   return ValidateBy({
-    name: SPECIFIC_EMAIL_DOMAIN,
+    name: VALIDATION.SPECIFIC_EMAIL_DOMAIN.toString(),
     validator: {
       validate: (value, _): boolean => checkEmailDomain(value, domain),
       defaultMessage: buildMessage(eachPrefix => eachPrefix + `$property must use @${domain}.`)
     }
   });
 }
+
+export const requestQuery = () : ParameterDecorator => params(PARAMETER_TYPE.QUERY)

@@ -1,5 +1,6 @@
 import { isArray, isEmpty } from 'class-validator';
 import { EntityManager, EntityName } from '@mikro-orm/core';
+import BasePaginatedRequestDto from '@dto/master/base-paginated-request.dto';
 
 export const calculatedPagination = (total: number, limit: number, offset: number): { page: number, pages: number } => {
   const page = Math.floor(offset / limit) + 1;
@@ -11,26 +12,20 @@ export const calculatedPagination = (total: number, limit: number, offset: numbe
 };
 
 interface IWhere {
+  eq?: { [fieldName: string]: string|number }
   ilike?: {
     [fieldName: string]: (wrapper: (value: string, mark: 'both' | 'before' | 'after') => string) => string
   },
   in?: { [fieldName: string]: any[] }
 }
 
-export const populateWhere = (wheres: IWhere) => {
-  /**
-   * {
-   *   fieldName: {
-   *     $ilike: value
-   *   }
-   * }
-   */
+export const populateWhere = (where: IWhere) => {
   const fields = {};
 
 
-  if (wheres.ilike != undefined) {
-    Object.keys(wheres.ilike).forEach(fieldName => {
-      const callback = wheres.ilike[fieldName];
+  if (where.ilike != undefined) {
+    Object.keys(where.ilike).forEach(fieldName => {
+      const callback = where.ilike[fieldName];
       if (typeof callback === 'function') {
         const value = callback((v, mark) => {
           if (!isEmpty(v)) {
@@ -51,13 +46,25 @@ export const populateWhere = (wheres: IWhere) => {
     });
   }
 
-  if (wheres.in != undefined) {
-    Object.keys(wheres.in).forEach(fieldName => {
-      const value = wheres.in[fieldName];
+  if (where.eq != undefined) {
+    Object.keys(where.eq).forEach(fieldName => {
+      const value = where.eq[fieldName];
+      if (!isEmpty(value)) {
+        fields[fieldName] = {
+          ...fields[fieldName],
+          $eq: value
+        }
+      }
+    });
+  }
+
+  if (where.in != undefined) {
+    Object.keys(where.in).forEach(fieldName => {
+      const value = where.in[fieldName];
       if (isArray(value)) {
         fields[fieldName] = {
           ...fields[fieldName],
-          $in: wheres.in[fieldName]
+          $in: where.in[fieldName]
         };
       }
     });
@@ -88,28 +95,25 @@ export const paginationQuery = async <E>(
   em: EntityManager,
   entity: EntityName<object>,
   where: Record<string, unknown>,
-  order: string,
-  limit: number,
-  offset: number
+  query: BasePaginatedRequestDto
 ) : Promise<{
   readonly records: E[],
   readonly total: number,
   readonly page: number,
   readonly pages: number
 }> => {
-  const options = { limit, offset }
-  const {orderBy, sort} = getOrder(order);
+  const options = { limit: query.limit, offset: query.offset }
+  const {orderBy, sort} = getOrder(query.order);
   if (!isEmpty(orderBy)) {
     options['orderBy'] = {
       [orderBy]: sort
     }
   }
-  console.log(options)
   const total = await em.count(entity, where);
-  const {page, pages} = calculatedPagination(total, limit, offset);
+  const {page, pages} = calculatedPagination(total, options.limit, options.offset);
   let records: E[] = [];
   // if offset greater than total, don't execute this query!
-  if (offset < total) {
+  if (options.offset < total) {
     records = await em.find(entity, where, options) as E[];
   }
   

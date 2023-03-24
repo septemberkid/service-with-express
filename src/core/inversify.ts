@@ -7,6 +7,9 @@ import { MikroORM } from '@mikro-orm/core';
 import { PostgreSqlDriver, SqlEntityManager } from '@mikro-orm/postgresql';
 import Logger from '@util/logger';
 import winston from 'winston';
+import {Client as MinioClient} from 'minio';
+import { minioConfig } from '@config';
+import chalk from 'chalk';
 
 export const inversifyBindings = new AsyncContainerModule(
   async (bind): Promise<void> => {
@@ -41,7 +44,7 @@ export const inversifyBindings = new AsyncContainerModule(
       );
       return controllers.map((c) => c.default);
     });
-    controllers.forEach((c) => bind(c).to(c));
+    controllers.forEach((c) => bind(c).toSelf());
     // load repositories
     const repositories = await new Promise((resolve, _) => {
       glob(
@@ -80,5 +83,12 @@ export const inversifyBindings = new AsyncContainerModule(
     services.forEach((c) => bind(c.name).to(c));
     // binding logger
     bind<winston.Logger>(TYPES.LOGGER).toConstantValue(Logger);
+
+    try {
+      const minio: MinioClient = new MinioClient(minioConfig);
+      bind<MinioClient>(TYPES.MINIO_INSTANCE).toConstantValue(minio)
+    } catch (error) {
+      process.stdout.write(chalk.redBright(`${(error as Error).message}\n`));
+    }
   }
 );

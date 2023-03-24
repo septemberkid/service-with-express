@@ -2,15 +2,15 @@ import { Entity, PrimaryKey, Property, wrap } from '@mikro-orm/core';
 import ModifiedByInterface from '@interface/modified-by.interface';
 
 @Entity({
-  tableName: 'mst_faculty',
+  tableName: 'mst_program_study',
   schema: 'public'
 })
-export default class FacultyMasterEntity {
-  @PrimaryKey({
+export default class ProgramStudyMasterEntity {
+  @PrimaryKey()
+  @Property({
     autoincrement: true,
-    type: 'int'
   })
-  id!: number;
+  id: number;
 
   @Property({
     unique: true,
@@ -26,6 +26,9 @@ export default class FacultyMasterEntity {
   @Property({
     type: 'int'
   })
+  faculty_id: number;
+
+  @Property()
   version: number;
 
   @Property({
@@ -42,8 +45,7 @@ export default class FacultyMasterEntity {
     type: 'timestamp'
   })
   updated_at: string;
-
-  toJSON(strict = true, strip = ['id'], ...args: any[]): { [p: string]: any } {
+  toJSON(strict = true, strip = ['id', 'faculty_id'], ...args: any[]): { [p: string]: any } {
     const o = wrap(this, true).toObject(...args);
     if (strict) {
       strip.forEach(k => delete o[k]);

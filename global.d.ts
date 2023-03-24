@@ -1,4 +1,4 @@
-import { LocaleObject } from "i18n";
+import { LocaleObject } from 'i18n';
 
 
 export namespace NodeJS {
@@ -21,6 +21,11 @@ export namespace NodeJS {
     DB_MAX_POOL: number;
     DB_IDLE_TIMEOUT: number;
     DB_CONNECTION_TIMEOUT: number;
+    MINIO_ENDPOINT: string;
+    MINIO_PORT: number;
+    MINIO_USE_SSL: boolean;
+    MINIO_ACCESS_KEY: string;
+    MINIO_SECRET_KEY: string;
   }
 }
 

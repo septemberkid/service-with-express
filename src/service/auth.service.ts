@@ -1,6 +1,7 @@
 import { inject, injectable } from 'inversify';
 import AppUserRepository from '@repository/app-user.repository';
-import AuthDto from '@dto/auth.dto';
+import RegisterRequestDto from '@dto/auth/register-request.dto';
+import LoginRequestDto from '@dto/auth/login-request.dto';
 
 @injectable()
 export default class AuthService {
@@ -8,7 +9,11 @@ export default class AuthService {
   private _appUserRepository: AppUserRepository;
   
   
-  public login(authDto: AuthDto) : void {
-    console.log(authDto)
+  public login(loginRequestDto: LoginRequestDto) : void {
+    console.log(loginRequestDto)
+  }
+
+  public register(registerRequestDto: RegisterRequestDto): void {
+    // check if email not yet registered
   }
 }

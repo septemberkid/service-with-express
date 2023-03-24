@@ -4,6 +4,7 @@ import Logger from '@util/logger';
 import ResponseDto from '@dto/response.dto';
 import { NODE_ENV } from '@config';
 import ValidationException from '@exception/validation.exception';
+import { MulterError } from 'multer';
 
 const useErrorMiddleware = (
   error: HttpException,
@@ -15,7 +16,9 @@ const useErrorMiddleware = (
     if (error instanceof ValidationException) {
       return handleValidationException(res, error);
     }
-
+    if (error instanceof MulterError) {
+      return handleValidationException(res, ValidationException.newError(error.field, error.code, error.message));
+    }
     const httpCode: number = error.httpCode || 500;
     const message: string = error.message || res.__('error.general');
 
@@ -37,4 +40,8 @@ const useErrorMiddleware = (
 const handleValidationException = (res: Response, validationException: ValidationException) => {
   return res.status(400).json(ResponseDto.validator(validationException.validations))
 }
+const handleFileTooLarge = (res: Response, message: string) => {
+  return res.status(400).json(ResponseDto.fail(message))
+}
+
 export default useErrorMiddleware;
