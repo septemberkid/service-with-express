@@ -1,16 +1,12 @@
-import { inject, injectable } from 'inversify';
+import { inject } from 'inversify';
 import { BucketItem, Client as MinioClient, UploadedObjectInfo } from 'minio';
 import TYPES from '@enums/types.enum';
-import * as fs from 'fs';
-import * as console from 'console';
+import { provide } from 'inversify-binding-decorators';
 
 const BUCKET_NAME = 'spk-mbkm';
 const EXPIRED = 2*60*60; // 24 hours
 
-
-
-
-@injectable()
+@provide(TYPES.MINIO_SERVICE)
 export default class MinioService {
   @inject<MinioClient>(TYPES.MINIO_INSTANCE)
   private _minioInstance: MinioClient
@@ -39,7 +35,6 @@ export default class MinioService {
   }
 
   public async getPreSignedUrl(object: string) : Promise<string> {
-    console.log(object)
     return this._minioInstance.presignedUrl('GET', BUCKET_NAME, object, EXPIRED);
   }
 

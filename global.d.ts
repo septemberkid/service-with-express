@@ -10,6 +10,8 @@ export namespace NodeJS {
     APP_STATIC_PATH: string;
     APP_KEY: string;
     APP_HKEY_EXPIRED: number;
+    JWT_SECRET: string;
+    JWT_ISSUER: string;
     JWT_EXPIRED: number;
     LOG_DIR: string;
     DB_HOST: string;

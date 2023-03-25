@@ -4,6 +4,7 @@ import { Options } from '@mikro-orm/core';
 import { PostgreSqlDriver } from '@mikro-orm/postgresql';
 import path from 'path';
 import { ClientOptions } from 'minio';
+
 config({
   path: `.env.${process.env.NODE_ENV || 'development'}`,
 });
@@ -14,6 +15,8 @@ export const {
   APP_ROOT_PATH,
   APP_STATIC_PATH,
   APP_HKEY_EXPIRED,
+  JWT_SECRET,
+  JWT_ISSUER,
   JWT_EXPIRED,
   LOG_DIR,
   DB_NAME,
@@ -61,3 +64,4 @@ export const minioConfig: ClientOptions = {
   accessKey: MINIO_ACCESS_KEY,
   secretKey: MINIO_SECRET_KEY
 }
+export const UUID_NAMESPACE = 'dae73761-9a06-4455-bff9-99c5dc9aa03d';

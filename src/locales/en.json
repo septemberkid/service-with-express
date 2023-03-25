@@ -10,5 +10,14 @@
 		"invalid_key": "The value of the 'X-KEY' header is invalid. Please ensure that you are using a valid X-KEY and try again. If you continue to experience issues, please contact the administrator for assistance.",
 		"expired_key": "The 'X-KEY' header value has expired. Please ensure that you are using a current and valid API key."
 	},
-	"hello": "hello"
+	"user": {
+		"duplicate_email": "Your email is already registered.",
+		"user_successful_registered": "Your account has been successfully registered.",
+		"user_successful_login": "You have successfully logged in to your account.",
+		"invalid_email_or_password": "Invalid email or password.",
+		"user_inactive": "Your account is currently inactive, please contact the administrator for assistance.",
+		"invalid_type_of_user": "Invalid type of user"
+	},
+	"hello": "hello",
+	"user_successful_login": "user_successful_login"
 }

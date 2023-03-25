@@ -16,7 +16,7 @@ interface IWhere {
   ilike?: {
     [fieldName: string]: (wrapper: (value: string, mark: 'both' | 'before' | 'after') => string) => string
   },
-  in?: { [fieldName: string]: any[] }
+  in?: { [fieldName: string]: string|number[] }
 }
 
 export const populateWhere = (where: IWhere) => {

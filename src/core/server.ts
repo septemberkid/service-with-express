@@ -1,7 +1,8 @@
 import express, { Application, Router } from 'express';
 import { InversifyExpressServer } from 'inversify-express-utils';
+import { buildProviderModule } from 'inversify-binding-decorators';
 import { Container } from 'inversify';
-import { inversifyBindings } from '@core/inversify';
+import { bindings } from '@core/inversify';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cors from 'cors';
@@ -12,6 +13,8 @@ import chalk from 'chalk';
 import useErrorMiddleware from '@middleware/error.middleware';
 import useClientMiddleware from '@middleware/client.middleware';
 import useI18nMiddleware from '@middleware/i18n.middleware';
+import { MikroORM, RequestContext } from '@mikro-orm/core';
+import TYPES from '@enums/types.enum';
 
 export default class Server {
   private app: Application;
@@ -46,6 +49,13 @@ export default class Server {
           app.use(express.static(APP_STATIC_PATH as string));
           // Logger Middleware
           NODE_ENV === 'development' && app.use(morgan('dev'));
+          
+          // create different instances for each request
+          app.use((req, res, _next) : void => {
+            const connection = container.get<MikroORM>(TYPES.DATABASE_CONNECTION);
+            RequestContext.create(connection.em, _next);
+          })
+          
           app.use(useI18nMiddleware);
           app.use(useClientMiddleware);
         });
@@ -68,7 +78,8 @@ export default class Server {
     const container = new Container({
       defaultScope: 'Singleton',
     });
-    await container.loadAsync(inversifyBindings);
+    await container.loadAsync(bindings);
+    await container.load(buildProviderModule());
     return container;
   }
 }

@@ -21,7 +21,7 @@ export default class ValidationException {
     })
   }
 
-  public static newError(field: string, type: symbol, message: string) : ValidationException {
+  public static newError(field: string, type: string, message: string) : ValidationException {
     const validationError: ValidationError = new ValidationError();
     validationError.property = field;
     validationError.constraints = {

@@ -1,4 +1,5 @@
 import moment from 'moment';
+
 export const isValidFormat = (input: string, format: string): boolean =>
   moment(input, format).isValid();
 export const nextMinutes = (
@@ -11,3 +12,5 @@ export const isTimeNowOrAfter = (input: string, format: string): boolean => {
   const _m2 = moment(moment(), format).valueOf();
   return _m1 >= _m2;
 };
+
+export const nowAsTimestamp = () : string => moment().format('YYYY-MM-DD hh:mm:ss');

@@ -10,6 +10,7 @@ import VALIDATION from '@enums/validation.enum';
 import { DOCUMENT_ENUM } from '@enums/document.enum';
 import { getExtension } from '@util/helpers';
 import { UploadedObjectInfo } from 'minio';
+import TYPES from '@enums/types.enum';
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -18,7 +19,7 @@ const upload = multer({
 });
 
 @controller('/submission')export default class SubmissionController extends BaseController {
-  @inject<MinioService>('MinioService')
+  @inject<MinioService>(TYPES.MINIO_SERVICE)
   private minioService: MinioService;
   
   @httpGet('/documents')

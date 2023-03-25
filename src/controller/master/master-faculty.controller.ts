@@ -1,5 +1,4 @@
 import { inject } from 'inversify';
-import FacultyMasterRepository from '@repository/master/faculty-master.repository';
 import { controller, httpGet, requestParam } from 'inversify-express-utils';
 import useHeaderMiddleware from '@middleware/header.middleware';
 import BaseController from '@controller/base.controller';
@@ -8,18 +7,28 @@ import useRequestMiddleware from '@middleware/request.middleware';
 import FacultyPaginatedRequestDto from '@dto/master/faculty/faculty-paginated-request.dto';
 import { plainToInstance } from 'class-transformer';
 import { requestQuery } from '@util/decorator';
+import MasterFacultyEntity from '@entity/master/master-faculty.entity';
+import HttpException from '@exception/http.exception';
+import PaginationRepository from '@repository/pagination.repository';
 
 @controller('/master/faculty')
-export default class FacultyMasterController extends BaseController {
-  @inject<FacultyMasterRepository>('FacultyMasterRepository')
-  private _repository: FacultyMasterRepository;
+export default class MasterFacultyController extends BaseController {
+  constructor(
+    @inject('MasterFacultyEntityRepository')
+    private readonly repo: PaginationRepository<MasterFacultyEntity>
+  ) {
+    super();
+  }
 
   @httpGet(
     '/:xid',
     useHeaderMiddleware(),
   )
   async retrieve(@requestParam('xid') xid: string) {
-    const result = await this._repository.retrieve<string>(xid);
+    const result = await this.repo.findOne<string>({
+      xid
+    });
+    if (!result) throw new HttpException(404, 'Data not found')
     return this.success(result);
   }
 
@@ -34,7 +43,7 @@ export default class FacultyMasterController extends BaseController {
         name: wrap => wrap(query.name, 'both')
       },
     })
-    const { result, meta } = await this._repository.pagination(where, query);
+    const { result, meta } = await this.repo.pagination(MasterFacultyEntity, where, query);
     return this.paginated(result, meta);
   }
 

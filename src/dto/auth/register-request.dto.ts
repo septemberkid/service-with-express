@@ -1,4 +1,4 @@
-import { IsNotEmpty, MinLength, MaxLength, IsEmail } from 'class-validator';
+import { IsEmail, IsNotEmpty, MaxLength, MinLength } from 'class-validator';
 import { SpecificEmailDomain } from '@util/decorator';
 
 export default class RegisterRequestDto {
@@ -6,6 +6,11 @@ export default class RegisterRequestDto {
   @MinLength(6)
   @MaxLength(12)
   public nim: string;
+
+  @IsNotEmpty()
+  @MinLength(3)
+  @MaxLength(100)
+  public full_name: string;
   
   @IsNotEmpty()
   @IsEmail()

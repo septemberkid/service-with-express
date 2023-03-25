@@ -1,4 +1,4 @@
-import { IsNotEmpty, MinLength, IsEmail } from 'class-validator';
+import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import { SpecificEmailDomain } from '@util/decorator';
 
 export default class LoginRequestDto {

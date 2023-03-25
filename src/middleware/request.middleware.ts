@@ -3,8 +3,8 @@ import { plainToInstance } from 'class-transformer';
 import { validate, ValidationError } from 'class-validator';
 import ValidationException from '@exception/validation.exception';
 
-const useRequestMiddleware = (
-  dto: any,
+const useRequestMiddleware = <DTO extends object>(
+  dto: { new (...args: string[]) : DTO },
   value: 'query' | 'body' | 'params' = 'body',
   skipMissingProperties = false,
   whitelist = true,

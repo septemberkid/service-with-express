@@ -1,7 +1,4 @@
-import {
-  controller,
-  httpGet,
-} from 'inversify-express-utils';
+import { controller, httpGet } from 'inversify-express-utils';
 import BaseController from '@controller/base.controller';
 
 @controller('/')

@@ -40,8 +40,5 @@ const useErrorMiddleware = (
 const handleValidationException = (res: Response, validationException: ValidationException) => {
   return res.status(400).json(ResponseDto.validator(validationException.validations))
 }
-const handleFileTooLarge = (res: Response, message: string) => {
-  return res.status(400).json(ResponseDto.fail(message))
-}
 
 export default useErrorMiddleware;

@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import HttpException from '@exception/http.exception';
 import { CLIENTS, RegisteredClient } from '../config/client';
 import Encryptor from '@util/encryptor';
-import { isValidFormat, nextMinutes, isTimeNowOrAfter } from '@util/date-time';
+import { isTimeNowOrAfter, isValidFormat, nextMinutes } from '@util/date-time';
 import { APP_HKEY_EXPIRED } from '@config';
 
 const useClientMiddleware = (

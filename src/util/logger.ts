@@ -1,49 +1,94 @@
 import { existsSync, mkdirSync } from 'fs';
-import winston from 'winston';
-import winstonDaily, {
-  DailyRotateFileTransportOptions,
-} from 'winston-daily-rotate-file';
+import winston, { format, Logger as WinstonLogger } from 'winston';
+import winstonDaily, { DailyRotateFileTransportOptions } from 'winston-daily-rotate-file';
+import { LOG_DIR, NODE_ENV } from '@config';
+import { ProvideSingleton } from '@util/decorator';
+import TYPES from '@enums/types.enum';
+import { resolve } from 'path';
+import { FileTransportOptions } from 'winston/lib/winston/transports';
 import { toUppercase } from '@util/helpers';
-import { LOG_DIR } from '@config';
 
-if (!existsSync(LOG_DIR)) {
-  mkdirSync(LOG_DIR);
+interface WinstonLoggerOptions {
+  file: FileTransportOptions;
 }
+// Log Types
+type LOG_TYPE = {
+  'info': 'info';
+  'error': 'error';
+}
+
+// default configs
+const rootDir: string = resolve(__dirname, '../../');
+const logsDirectory = `${rootDir}/${LOG_DIR||'logs'}`
+const maxsize = 5242880;
+
+// check to see if logsDirectory folder exists
+if (!existsSync(logsDirectory)) {
+  mkdirSync(logsDirectory);
+}
+
+// Transform the output into more readable string
 const logFormat = winston.format.printf(
-  ({ timestamp, level, message }) =>
-    `${timestamp} [${toUppercase(level)}]: ${message}`
+  (info) => {
+    const { timestamp, level, message } = info;
+    return `${timestamp} [${toUppercase(level)}]: ${message}`
+  }
 );
 const winstonDailyOptions: DailyRotateFileTransportOptions = {
   datePattern: 'YYYY-MM-DD',
-  filename: '%DATE%.log',
+  filename: 'service-%DATE%.log',
   maxFiles: 30, // 30 Days saved
-  handleExceptions: true,
+  maxSize: '20m',
+  handleExceptions: false,
   json: false,
   zippedArchive: true,
 };
-const Logger = winston.createLogger({
-  format: winston.format.combine(
-    winston.format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss',
-    }),
-    logFormat
-  ),
-  transports: [
-    new winstonDaily({
-      ...winstonDailyOptions,
-      level: 'error',
-      dirname: LOG_DIR + '/error',
-    }),
-  ],
-});
-if (process.env.NODE_ENV !== 'production') {
-  Logger.add(
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.splat(),
-        winston.format.colorize()
+@ProvideSingleton(TYPES.LOGGER)
+export class Logger {
+  public logger: WinstonLogger;
+  private readonly options: WinstonLoggerOptions;
+
+  constructor() {
+    this.options = {
+      file: {
+        maxsize
+      },
+    }
+    this.logger = winston.createLogger({
+      format: format.combine(
+        format.timestamp({
+          format: 'YYYY-MM-DD HH:mm:ss',
+        }),
+        logFormat
       ),
-    })
-  );
+      transports: [
+        new winstonDaily({
+          ...winstonDailyOptions,
+          dirname: `${logsDirectory}`,
+        }),
+      ]
+    });
+    
+    if (NODE_ENV !== 'production') {
+      this.logger.add(
+        new winston.transports.Console({
+          format: format.combine(
+            format.colorize(),
+            format.simple(),
+            format.timestamp({
+              format: 'YYYY-MM-DD HH:mm:ss'
+            }),
+            logFormat
+          )
+        })
+      )
+    }
+  }
+
+  public log(error: Error, type: keyof LOG_TYPE): void {
+    this.logger.log(type, error.message)
+  }
+  public logMessage(message: string, type: keyof LOG_TYPE): void {
+    this.logger.log(type, message)
+  }
 }
-export default Logger;

@@ -1,5 +1,6 @@
-import { IsOptional, IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
+
 export default class BasePaginatedRequestDto {
   @IsOptional()
   @IsNumber()
