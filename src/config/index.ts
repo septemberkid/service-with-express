@@ -17,7 +17,6 @@ export const {
   APP_HKEY_EXPIRED,
   JWT_SECRET,
   JWT_ISSUER,
-  JWT_EXPIRED,
   LOG_DIR,
   DB_NAME,
   DB_HOST,
@@ -34,6 +33,8 @@ export const {
   MINIO_ACCESS_KEY,
   MINIO_SECRET_KEY
 } = process.env;
+
+export const JWT_EXPIRED = Number(process.env.JWT_EXPIRED || 3600)
 
 export const dbConfig: Options<PostgreSqlDriver> = {
   driver: PostgreSqlDriver,

@@ -1,17 +1,12 @@
-import AppUserEntity from '@entity/app/app-user.entity';
-
 export default class AuthResponseDto {
   readonly token: string;
-  readonly user: AppUserEntity;
-  readonly roles: string[];
+  readonly refresh_token: string;
 
   constructor(params: {
     token: string,
-    user: AppUserEntity,
-    roles: string[],
+    refresh_token: string,
   }) {
     this.token = params.token;
-    this.user = params.user;
-    this.roles = params.roles;
+    this.refresh_token = params.refresh_token;
   }
 }

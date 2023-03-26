@@ -4,6 +4,7 @@ import JwtPayloadInterface from '@interface/jwt-payload.interface';
 import { Buffer } from 'buffer';
 import { compareSync, genSaltSync, hashSync } from 'bcrypt';
 import Crypto from 'crypto';
+import { generateTokenExpired } from '@util/date-time';
 
 const secret = new TextEncoder().encode(JWT_SECRET);
 export default class Encryptor {
@@ -20,7 +21,7 @@ export default class Encryptor {
       .setIssuedAt()
       .setIssuer(JWT_ISSUER || 'web_service')
       .setAudience(audience)
-      .setExpirationTime(JWT_EXPIRED)
+      .setExpirationTime(generateTokenExpired(JWT_EXPIRED))
       .sign(secret);
   }
   static base64Encode(data: string) {

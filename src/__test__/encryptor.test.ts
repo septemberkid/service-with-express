@@ -12,7 +12,6 @@ describe('encryptor', () => {
   test('hash-bcrypt', async () => {
     const plain = '12345678';
     const hash = await Encryptor.hashBcrypt(plain);
-    console.log(hash)
     const isMatched = await Encryptor.compareBcrypt(plain, hash);
     expect(isMatched).toEqual(true)
   });

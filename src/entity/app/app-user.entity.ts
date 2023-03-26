@@ -21,6 +21,13 @@ export default class AppUserEntity extends BaseEntity {
   email: string;
 
   @Property({
+    type: 'varchar',
+    length: 100,
+    nullable: false
+  })
+  name: string;
+
+  @Property({
     type: 'text',
     nullable: false
   })

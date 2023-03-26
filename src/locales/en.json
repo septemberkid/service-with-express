@@ -1,8 +1,10 @@
 {
 	"error": {
 		"general": "Ops, Something went wrong.",
+		"invalid_content_type": "The 'Content-Type' header is not valid."
+	},
+	"client": {
 		"required_client_name": "The 'X-CLIENT-NAME' header is required for this API endpoint.",
-		"invalid_content_type": "The 'Content-Type' header is not valid.",
 		"required_key": "The 'X-KEY' header is required for this API endpoint.",
 		"required_timestamp": "The 'X-TIMESTAMP' header is required for this API endpoint.",
 		"invalid_client": "Your application client is not valid. Please contact the administrator for assistance.",
@@ -13,11 +15,18 @@
 	"user": {
 		"duplicate_email": "Your email is already registered.",
 		"user_successful_registered": "Your account has been successfully registered.",
-		"user_successful_login": "You have successfully logged in to your account.",
 		"invalid_email_or_password": "Invalid email or password.",
 		"user_inactive": "Your account is currently inactive, please contact the administrator for assistance.",
-		"invalid_type_of_user": "Invalid type of user"
+		"invalid_type_of_user": "Invalid type of user.",
+		"refresh_token_successful": "user.refresh_token_successful"
 	},
-	"hello": "hello",
-	"user_successful_login": "user_successful_login"
+	"token": {
+
+	},
+	"refresh_token": {
+		"successful": "The refresh token has been generated successfully.",
+		"invalid": "The refresh token is invalid.",
+		"expired": "The refresh token has expired."
+	},
+	"authorized": "Authorized."
 }

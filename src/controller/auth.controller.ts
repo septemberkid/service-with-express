@@ -10,6 +10,7 @@ import AuthService from '@service/auth.service';
 import RegisterRequestDto from '@dto/auth/register-request.dto';
 import LoginRequestDto from '@dto/auth/login-request.dto';
 import TYPES from '@enums/types.enum';
+import RefreshTokenRequestDto from '@dto/auth/refresh-token-request.dto';
 
 @controller('/auth')
 export default class AuthController extends BaseController {
@@ -17,13 +18,23 @@ export default class AuthController extends BaseController {
   private _authService: AuthService;
 
   @httpPost(
-    '/login',
+    '/authorize',
     useHeaderMiddleware(),
     useRequestMiddleware(LoginRequestDto)
   )
-  async login(@requestBody() body: LoginRequestDto, @Req() req: Request, @Res() res: Response) {
-    const result = await this._authService.login(body, req, res);
-    return this.success(result, res.__('user_successful_login'));
+  async authorize(@requestBody() body: LoginRequestDto, @Req() req: Request, @Res() res: Response) {
+    const result = await this._authService.authorize(body, req, res);
+    return this.success(result, res.__('authorized'));
+  }
+
+  @httpPost(
+    '/refresh-token',
+    useHeaderMiddleware(),
+    useRequestMiddleware(RefreshTokenRequestDto)
+  )
+  async refreshToken(@requestBody() body: RefreshTokenRequestDto, @Req() req: Request, @Res() res: Response) {
+    const result = await this._authService.refreshToken(body, req, res);
+    return this.success(result, res.__('refresh_token.successful'));
   }
 
   @httpPost(

@@ -14,3 +14,9 @@ export const isTimeNowOrAfter = (input: string, format: string): boolean => {
 };
 
 export const nowAsTimestamp = () : string => moment().format('YYYY-MM-DD hh:mm:ss');
+export const epoch = (amount: number): number => Math.floor(amount/1000);
+export const generateTokenExpired = (amountSecond: number): number => epoch(moment().add(amountSecond,'seconds').valueOf());
+export const generateRefreshToken = (): string => moment().add(1, 'month').format('YYYY-MM-DD hh:mm:ss');
+export const isExpired = (timestamp: string) => {
+  return !isTimeNowOrAfter(timestamp, 'YYYY-MM-DD hh:mm:ss')
+}
