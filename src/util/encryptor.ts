@@ -1,10 +1,11 @@
-import { SignJWT } from 'jose';
+import { SignJWT, jwtVerify } from 'jose';
 import { JWT_EXPIRED, JWT_ISSUER, JWT_SECRET } from '@config';
 import JwtPayloadInterface from '@interface/jwt-payload.interface';
 import { Buffer } from 'buffer';
 import { compareSync, genSaltSync, hashSync } from 'bcrypt';
 import Crypto from 'crypto';
 import { generateTokenExpired } from '@util/date-time';
+import { IUserPayload } from '@interface/request-user.interface';
 
 const secret = new TextEncoder().encode(JWT_SECRET);
 export default class Encryptor {
@@ -23,6 +24,18 @@ export default class Encryptor {
       .setAudience(audience)
       .setExpirationTime(generateTokenExpired(JWT_EXPIRED))
       .sign(secret);
+  }
+  static verifyToken = async (token: string, audience: string): Promise<IUserPayload> => {
+    const {payload} = await jwtVerify(token, secret, {
+      issuer: JWT_ISSUER || 'web_service',
+      audience
+    });
+    return {
+      xid: payload.xid as string,
+      name: payload.full_name as string,
+      roles: payload.roles as string[],
+      type: payload.user_type as string
+    }
   }
   static base64Encode(data: string) {
     return Buffer.from(data, 'utf8').toString('base64');

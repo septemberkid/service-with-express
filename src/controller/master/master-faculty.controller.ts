@@ -10,8 +10,9 @@ import { requestQuery } from '@util/decorator';
 import MasterFacultyEntity from '@entity/master/master-faculty.entity';
 import HttpException from '@exception/http.exception';
 import PaginationRepository from '@repository/pagination.repository';
+import useAuthMiddleware from '@middleware/auth.middleware';
 
-@controller('/master/faculty')
+@controller('/master/faculty', useAuthMiddleware)
 export default class MasterFacultyController extends BaseController {
   constructor(
     @inject('MasterFacultyEntityRepository')

@@ -11,6 +11,9 @@ import { DOCUMENT_ENUM } from '@enums/document.enum';
 import { getExtension } from '@util/helpers';
 import { UploadedObjectInfo } from 'minio';
 import TYPES from '@enums/types.enum';
+import useAuthMiddleware from '@middleware/auth.middleware';
+import { useRoles } from '@middleware/role.middleware';
+import { ROLE_ENUM } from '@enums/role.enum';
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -18,7 +21,8 @@ const upload = multer({
   limits: { fileSize: 1024 * 1024 }, // 1Mb
 });
 
-@controller('/submission')export default class SubmissionController extends BaseController {
+@controller('/submission', useAuthMiddleware, useRoles(ROLE_ENUM.STUDENT))
+export default class SubmissionController extends BaseController {
   @inject<MinioService>(TYPES.MINIO_SERVICE)
   private minioService: MinioService;
   

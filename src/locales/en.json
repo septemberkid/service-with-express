@@ -1,7 +1,8 @@
 {
 	"error": {
 		"general": "Ops, Something went wrong.",
-		"invalid_content_type": "The 'Content-Type' header is not valid."
+		"invalid_content_type": "The 'Content-Type' header is not valid.",
+		"forbidden": "You don't have access to this resource."
 	},
 	"client": {
 		"required_client_name": "The 'X-CLIENT-NAME' header is required for this API endpoint.",
@@ -17,11 +18,13 @@
 		"user_successful_registered": "Your account has been successfully registered.",
 		"invalid_email_or_password": "Invalid email or password.",
 		"user_inactive": "Your account is currently inactive, please contact the administrator for assistance.",
-		"invalid_type_of_user": "Invalid type of user.",
-		"refresh_token_successful": "user.refresh_token_successful"
+		"invalid_type_of_user": "Invalid type of user."
 	},
 	"token": {
-
+		"required": "The Authorization header is required for this API endpoint.",
+		"bearer": "The Authorization header must include 'Bearer' for this API endpoint.",
+		"expired": "The token has expired.",
+		"invalid": "The token is invalid."
 	},
 	"refresh_token": {
 		"successful": "The refresh token has been generated successfully.",

@@ -12,8 +12,9 @@ import MasterProgramStudyEntity from '@entity/master/master-program-study.entity
 import MasterFacultyEntity from '@entity/master/master-faculty.entity';
 import PaginationRepository from '@repository/pagination.repository';
 import HttpException from '@exception/http.exception';
+import useAuthMiddleware from '@middleware/auth.middleware';
 
-@controller('/master/program-study')
+@controller('/master/program-study', useAuthMiddleware)
 export default class MasterProgramStudyController extends BaseController {
   constructor(
     @inject('MasterProgramStudyEntityRepository')

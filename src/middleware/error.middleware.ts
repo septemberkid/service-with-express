@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import HttpException from '@exception/http.exception';
-import Logger from '@util/logger';
+import { Logger } from '@util/logger';
 import ResponseDto from '@dto/response.dto';
 import { NODE_ENV } from '@config';
 import ValidationException from '@exception/validation.exception';
@@ -13,6 +13,7 @@ const useErrorMiddleware = (
   _next: NextFunction
 ) => {
   try {
+    const logger = new Logger();
     if (error instanceof ValidationException) {
       return handleValidationException(res, error);
     }
@@ -26,8 +27,8 @@ const useErrorMiddleware = (
       `[${req.method}] ${req.path} >> HttpCode:: ${httpCode}, Message:: ${message}`
     );
     if (NODE_ENV === 'production') {
-      Logger.error(
-        `[${req.method}] ${req.path} >> HttpCode:: ${httpCode}, Message:: ${message}`
+      logger.logMessage(
+        `[${req.method}] ${req.path} >> HttpCode:: ${httpCode}, Message:: ${message}`, 'error'
       );
     }
     const response = ResponseDto.fail(message);
