@@ -28,6 +28,8 @@ export namespace NodeJS {
     MINIO_USE_SSL: boolean;
     MINIO_ACCESS_KEY: string;
     MINIO_SECRET_KEY: string;
+    MINIO_BUCKET_NAME: string;
+    MINIO_EXPIRED: string;
   }
 }
 

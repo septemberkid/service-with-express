@@ -63,6 +63,8 @@ export const minioConfig: ClientOptions = {
   port: Number(MINIO_PORT) || 9090,
   useSSL: MINIO_USE_SSL == 'true',
   accessKey: MINIO_ACCESS_KEY,
-  secretKey: MINIO_SECRET_KEY
+  secretKey: MINIO_SECRET_KEY,
 }
+export const minioBucketName: string = process.env.MINIO_BUCKET_NAME || 'bucket';
+export const minioExpired = Number(process.env.MINIO_EXPIRED || 7200);
 export const UUID_NAMESPACE = 'dae73761-9a06-4455-bff9-99c5dc9aa03d';
