@@ -19,11 +19,6 @@ export const mapEnumToConst = <T>(typeEnum: T): { [key in keyof T]: string } => 
   });
   return typeObject as { [key in keyof T]: string };
 };
-
-export const getExtension = (filename: string): string => {
-  const parts = filename.split('.');
-  return parts[parts.length - 1];
-}
 export const generateUUID = (value: string) : string => {
   return uuidV5(value, UUID_NAMESPACE);
 }
@@ -33,3 +28,18 @@ export const getHeader = (req: Request, key: string) => {
 }
 
 export const getClientName = (req: Request) => getHeader(req, 'x-client-name');
+
+export const isEmpty = (value: string|any[]|undefined) : boolean => {
+  return (typeof value === undefined) || (typeof value == 'string' && value.trim() == '') ||
+    (typeof value == 'object' && value.length == 0)
+}
+export const ltrim = (str: string, char: string) => {
+  const regexTrim = (!char) ? new RegExp('^\\s+') : new RegExp('^'+char+'+');
+  return str.replace(regexTrim, '');
+}
+export const rtrim = (str: string, char: string) => {
+  const regexTrim = (!char) ? new RegExp('\\s+$') : new RegExp(char+'+$');
+  if (!regexTrim.test(str))
+    return str.replace('\\', '');
+  return str.replace(regexTrim, '');
+}
