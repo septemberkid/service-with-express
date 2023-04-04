@@ -133,13 +133,11 @@ export default class AuthService {
       throw new HttpException(401, res.__('user.user_inactive'));
     return user;
   }
-  private generatePassword = async (base64Password: string): Promise<string> => {
-    const plainPassword = Encryptor.base64Decode(base64Password);
-    return await Encryptor.hashBcrypt(plainPassword);
+  private generatePassword = async (md5Password: string): Promise<string> => {
+    return await Encryptor.hashBcrypt(md5Password);
   }
-  private verifyPassword = async (password: string, hashPassword: string, res: Response) : Promise<void> => {
-    const plainPassword = Encryptor.base64Decode(password);
-    const isMatch = await Encryptor.compareBcrypt(plainPassword, hashPassword);
+  private verifyPassword = async (md5Password: string, hashPassword: string, res: Response) : Promise<void> => {
+    const isMatch = await Encryptor.compareBcrypt(md5Password, hashPassword);
     if (!isMatch) throw new HttpException(401, res.__('user.invalid_email_or_password'));
   }
   private getRolesByUserId = async (userId: number): Promise<string[]> => {

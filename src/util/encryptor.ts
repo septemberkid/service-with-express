@@ -1,7 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { JWT_EXPIRED, JWT_ISSUER, JWT_SECRET } from '@config';
 import JwtPayloadInterface from '@interface/jwt-payload.interface';
-import { Buffer } from 'buffer';
 import { compareSync, genSaltSync, hashSync } from 'bcrypt';
 import Crypto from 'crypto';
 import { generateTokenExpired } from '@util/date-time';
@@ -37,11 +36,8 @@ export default class Encryptor {
       type: payload.user_type as string
     }
   }
-  static base64Encode(data: string) {
-    return Buffer.from(data, 'utf8').toString('base64');
-  }
-  static base64Decode(encoded: string) {
-    return Buffer.from(encoded, 'base64').toString('utf8');
+  static md5(plain: string): string {
+    return Crypto.createHash('md5').update(plain).digest('hex');
   }
   static hashBcrypt(plain: string) : Promise<string> {
     const salt = genSaltSync(10);
