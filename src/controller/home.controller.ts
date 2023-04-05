@@ -38,7 +38,6 @@ export default class HomeController extends BaseController {
   }
   @httpPost('generate-md5-password')
   async generateMd5Password(@requestBody() body: {plain_password?: string}) {
-    console.log(body.plain_password)
     if (isEmpty(body.plain_password))
       throw new HttpException(400, 'Plain password is required')
     const md5Password = Encryptor.md5(body.plain_password);
