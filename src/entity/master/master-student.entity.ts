@@ -41,5 +41,5 @@ export default class MasterStudentEntity extends BaseEntity {
   @Property({
     type: 'int',
   })
-  program_study_id: number;
+  study_program_id: number;
 }

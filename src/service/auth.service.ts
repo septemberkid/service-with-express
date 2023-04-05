@@ -8,7 +8,7 @@ import AppUserEntity from '@entity/app/app-user.entity';
 import { provide } from 'inversify-binding-decorators';
 import { inject } from 'inversify';
 import MasterFacultyEntity from '@entity/master/master-faculty.entity';
-import MasterProgramStudyEntity from '@entity/master/master-program-study.entity';
+import MasterStudyProgramEntity from '@entity/master/master-study-program.entity';
 import { generateUUID, getClientName } from '@util/helpers';
 import USER_STATUS from '@enums/user-status.enum';
 import AuthResponseDto from '@dto/auth/auth-response.dto';
@@ -90,8 +90,8 @@ export default class AuthService {
     if (!faculty) throw new HttpException(400, 'The selected faculty is invalid.');
 
     // check if program study is valid
-    const programStudy: MasterProgramStudyEntity = await this.getProgramStudy(faculty.id, registerRequestDto.study_program_xid);
-    if (!programStudy) throw new HttpException(400, 'The selected program study is invalid');
+    const studyProgram: MasterStudyProgramEntity = await this.getProgramStudy(faculty.id, registerRequestDto.study_program_xid);
+    if (!studyProgram) throw new HttpException(400, 'The selected program study is invalid');
 
     await this.em.begin();
     try {
@@ -100,9 +100,9 @@ export default class AuthService {
       const hashPassword: string = await this.generatePassword(password);
       const user: AppUserEntity = await this.createUser(email,full_name, hashPassword);
       // assign role
-      await this.assignRole(user.id,  ROLE_ENUM.STUDENT);
+      await this.assignRole(user.id, faculty.id, studyProgram.id, ROLE_ENUM.STUDENT);
       // insert into student table
-      await this.assignToStudent(nim,full_name,email,faculty.id,programStudy.id);
+      await this.assignToStudent(nim, full_name, email,faculty.id, studyProgram.id);
       const client = getClientName(req);
       const token = await Encryptor.generateJWT({
         xid: user.xid,
@@ -161,8 +161,8 @@ export default class AuthService {
       xid
     })
   }
-  private getProgramStudy = async (facultyId: number, programStudyXid: string): Promise<MasterProgramStudyEntity> => {
-    return this.em.findOne(MasterProgramStudyEntity, {
+  private getProgramStudy = async (facultyId: number, programStudyXid: string): Promise<MasterStudyProgramEntity> => {
+    return this.em.findOne(MasterStudyProgramEntity, {
       faculty_id: facultyId,
       xid: programStudyXid
     })
@@ -180,23 +180,31 @@ export default class AuthService {
     await this.em.persistAndFlush(user);
     return user;
   }
-  private assignRole = async (userId: number, ...roles: ROLE_ENUM[]): Promise<void> => {
+  private assignRole = async (userId: number, faculty_id: number, study_program_id: number, ...roles: ROLE_ENUM[]): Promise<void> => {
     for (const r of roles) {
       const role: AppUserRoleEntity = this.em.create(AppUserRoleEntity, {
         user_id: userId,
-        role_code: r
+        role_code: r,
+        faculty_id,
+        study_program_id
       });
       await this.em.persistAndFlush(role);
     }
   }
-  private assignToStudent = async (nim: string, fullName: string, email: string, facultyId: number, programStudyId: number): Promise<MasterStudentEntity> => {
+  private assignToStudent = async (nim: string, fullName: string, email: string, facultyId: number, studyProgramId: number): Promise<MasterStudentEntity> => {
+    const alreadyExistByEmail: MasterStudentEntity = await this.em.findOne(MasterStudentEntity, {
+      email
+    });
+    if (alreadyExistByEmail)
+      await this.em.remove(alreadyExistByEmail);
+
     const student: MasterStudentEntity = this.em.create(MasterStudentEntity,{
       xid: generateUUID(nim),
       nim,
       name: fullName,
       email,
       faculty_id: facultyId,
-      program_study_id: programStudyId,
+      study_program_id: studyProgramId,
       version: 1
     });
     await this.em.persistAndFlush(student);

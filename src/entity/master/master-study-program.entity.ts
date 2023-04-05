@@ -3,12 +3,12 @@ import { BaseEntity } from '@entity/base.entity';
 import PaginationRepository from '@repository/pagination.repository';
 
 @Entity({
-  tableName: 'mst_program_study',
+  tableName: 'mst_study_program',
   schema: 'public',
-  customRepository: () => PaginationRepository<MasterProgramStudyEntity>
+  customRepository: () => PaginationRepository<MasterStudyProgramEntity>
 })
-export default class MasterProgramStudyEntity extends BaseEntity {
-  [EntityRepositoryType]?: PaginationRepository<MasterProgramStudyEntity>;
+export default class MasterStudyProgramEntity extends BaseEntity {
+  [EntityRepositoryType]?: PaginationRepository<MasterStudyProgramEntity>;
   
   @Property({
     unique: true,

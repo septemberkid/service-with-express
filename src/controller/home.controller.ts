@@ -8,7 +8,6 @@ import { nowAsTimestamp } from '@util/date-time';
 import { requestBody } from 'inversify-express-utils/lib/decorators';
 import HttpException from '@exception/http.exception';
 import Encryptor from '@util/encryptor';
-import useHeaderMiddleware from '@middleware/header.middleware';
 import useRequestMiddleware from '@middleware/request.middleware';
 import FacultyPaginatedRequestDto from '@dto/master/faculty/faculty-paginated-request.dto';
 import { plainToInstance } from 'class-transformer';
@@ -17,7 +16,7 @@ import { requestQuery } from '@util/decorator';
 import MasterFacultyEntity from '@entity/master/master-faculty.entity';
 import PaginationRepository from '@repository/pagination.repository';
 import ProgramStudyPaginatedRequestDto from '@dto/master/program-study/program-study-paginated-request.dto';
-import MasterProgramStudyEntity from '@entity/master/master-program-study.entity';
+import MasterStudyProgramEntity from '@entity/master/master-study-program.entity';
 
 @controller('/')
 export default class HomeController extends BaseController {
@@ -25,8 +24,8 @@ export default class HomeController extends BaseController {
   private _minioService: MinioService;
   @inject('MasterFacultyEntityRepository')
   private readonly mstFacultyRepo: PaginationRepository<MasterFacultyEntity>
-  @inject('MasterProgramStudyEntityRepository')
-  private readonly mstProgramStudyRepo: PaginationRepository<MasterProgramStudyEntity>
+  @inject('MasterStudyProgramEntityRepository')
+  private readonly mstProgramStudyRepo: PaginationRepository<MasterStudyProgramEntity>
 
   @httpGet('')
   async index() {
@@ -68,7 +67,7 @@ export default class HomeController extends BaseController {
     return this.paginated(result, meta);
   }
   @httpGet(
-    'public/program-study',
+    'public/study-program',
     useRequestMiddleware(ProgramStudyPaginatedRequestDto, 'query')
   )
   async getProgramStudyPaginatedList(@requestQuery() query: ProgramStudyPaginatedRequestDto) {
@@ -92,7 +91,7 @@ export default class HomeController extends BaseController {
       }
     })
 
-    const { result, meta } = await this.mstProgramStudyRepo.pagination(MasterProgramStudyEntity, where, query);
+    const { result, meta } = await this.mstProgramStudyRepo.pagination(MasterStudyProgramEntity, where, query);
     return this.paginated(result, meta);
   }
 }

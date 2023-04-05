@@ -31,7 +31,7 @@ export default class AppUserRoleEntity {
     type: 'int',
     nullable: true
   })
-  program_study_id: number;
+  study_program_id: number;
 
   toJSON(strict = true, strip = ['id', 'user_id'], ...args: any[]): { [p: string]: any } {
     const o = wrap(this, true).toObject(...args);
