@@ -9,7 +9,7 @@ START 1
   "user_id" int4 NOT NULL,
   "role_code" varchar(10) COLLATE "pg_catalog"."default" NOT NULL,
   "faculty_id" int4,
-  "program_study_id" int4,
+  "study_program_id" int4,
   CONSTRAINT "app_user_role_pkey" PRIMARY KEY ("id")
 )
 ;

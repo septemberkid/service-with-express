@@ -1,0 +1,11 @@
+flyway.url=jdbc:postgresql://localhost:5432/spk_mbkm
+flyway.user=postgres
+flyway.password=your-password
+flyway.locations=filesystem:D:\Projects\MyProjects\spk-mbkm\service\migrations\scripts
+flyway.schemas=public
+flyway.table=flyway_history
+flyway.sqlMigrationPrefix=V
+flyway.repeatableSqlMigrationPrefix=R
+flyway.sqlMigrationSeparator=__
+flyway.sqlMigrationSuffixes=.sql
+flyway.cleanDisabled=false

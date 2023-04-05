@@ -11,14 +11,14 @@ START 1
   "name" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
   "email" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
   "faculty_id" int4 NOT NULL,
-  "program_study_id" int4 NOT NULL,
+  "study_program_id" int4 NOT NULL,
   "version" int4,
   "modified_by" json,
   "created_at" timestamp(6) DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamp(6),
   CONSTRAINT "mst_student_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "mst_student-faculty_id-fk" FOREIGN KEY ("faculty_id") REFERENCES "public"."mst_faculty" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT "mst_student-program_study_id-fk" FOREIGN KEY ("program_study_id") REFERENCES "public"."mst_program_study" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT "mst_student-study_program_id-fk" FOREIGN KEY ("study_program_id") REFERENCES "public"."mst_study_program" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
 )
 ;
 
