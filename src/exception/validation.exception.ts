@@ -4,7 +4,6 @@ import { ValidationError } from 'class-validator';
 export default class ValidationException {
   public validations: {[key: string] : string[]} = {};
   constructor(protected errors: ValidationError[]){
-    console.log(errors)
     errors[0].children = [
       new ValidationError()
     ]
