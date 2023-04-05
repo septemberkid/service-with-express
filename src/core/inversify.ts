@@ -59,8 +59,7 @@ const bindEntityToRepository = <T extends object, U>(
 ): void => {
   bind<GetRepository<T, EntityRepository<T>>>(bindingName)
     .toDynamicValue((): GetRepository<T, EntityRepository<T>> => {
-      const repo = connection.em.getRepository<T>(entity);
-      return repo;
+      return connection.em.getRepository<T>(entity);
     })
     .inRequestScope();
 }
