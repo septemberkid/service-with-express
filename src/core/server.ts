@@ -41,7 +41,16 @@ export default class Server {
           // Use Cross Origin Resource Sharing
           app.use(cors());
           // Use Content-Encoding
-          app.use(compression());
+          app.use(compression({
+            level: 9,
+            filter: (req, res) => {
+              if (req.headers['x-no-compression']) {
+                // don't compress responses with this request header
+                return false;
+              }
+              return compression.filter(req, res);
+            }
+          }));
           // Use 'bodyParser' To Parse JSON And URL Params
           app.use(bodyParser.json());
           app.use(bodyParser.urlencoded({ extended: false }));
