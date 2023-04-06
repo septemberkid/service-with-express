@@ -18,7 +18,8 @@
 		"user_successful_registered": "Your account has been successfully registered.",
 		"invalid_email_or_password": "Invalid email or password.",
 		"user_inactive": "Your account is currently inactive, please contact the administrator for assistance.",
-		"invalid_type_of_user": "Invalid type of user."
+		"invalid_type_of_user": "Invalid type of user.",
+		"not_found": "User not found."
 	},
 	"token": {
 		"required": "The Authorization header is required for this API endpoint.",
@@ -31,5 +32,12 @@
 		"invalid": "The refresh token is invalid.",
 		"expired": "The refresh token has expired."
 	},
-	"authorized": "Authorized."
+	"authorized": "Authorized.",
+	"submission": {
+		"student_not_found": "Student not found."
+	},
+	"validation": {
+		"file_required": "The file is required.",
+		"file_invalid_extension": "'The file extension is invalid.'"
+	}
 }

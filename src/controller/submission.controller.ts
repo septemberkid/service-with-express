@@ -1,19 +1,16 @@
 import BaseController from '@controller/base.controller';
-import { controller, httpGet, httpPost, request, requestParam } from 'inversify-express-utils';
-import MinioService from '@service/minio.service';
+import { controller, httpGet, httpPost, requestParam } from 'inversify-express-utils';
 import { inject } from 'inversify';
-import { Request } from 'express';
+import { Response } from 'express';
 import multer from 'multer';
-import { isValidExtension } from '@util/validation';
-import ValidationException from '@exception/validation.exception';
-import VALIDATION from '@enums/validation.enum';
 import { DOCUMENT_ENUM } from '@enums/document.enum';
-import { getExtension } from '@util/helpers';
-import { UploadedObjectInfo } from 'minio';
 import TYPES from '@enums/types.enum';
 import useAuthMiddleware from '@middleware/auth.middleware';
 import { useRoles } from '@middleware/role.middleware';
 import { ROLE_ENUM } from '@enums/role.enum';
+import { RequestUserInterface } from '@interface/request-user.interface';
+import { Req, Res } from 'routing-controllers';
+import SubmissionService from '@service/submission.service';
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -23,56 +20,36 @@ const upload = multer({
 
 @controller('/submission', useAuthMiddleware, useRoles(ROLE_ENUM.STUDENT))
 export default class SubmissionController extends BaseController {
-  @inject<MinioService>(TYPES.MINIO_SERVICE)
-  private minioService: MinioService;
-  
+  @inject<SubmissionService>(TYPES.SUBMISSION_SERVICE)
+  private submissionService: SubmissionService  ;
   @httpGet('/documents')
-  async getDocuments() {
-    try {
-      const res = await this.minioService.readDocumentsByNIM('40621210004');
-      return this.success(res);
-    } catch (e) {
-      return this.fail((e as Error).message);
-    }
+  async getDocuments(@Req() req: RequestUserInterface, @Res() res: Response) {
+    const result = await this.submissionService.getDocuments(req, res);
+    return this.success(result);
   }
-
   @httpPost('/upload/frs', upload.single('file'))
-  async uploadFrs(@request() req: Request) {
-    try {
-      const uploadedFile = await this.uploadDocument('40621210004', DOCUMENT_ENUM.FRS, req.file);
-      console.log(uploadedFile)
-    } catch (e) {
-      console.log(e)
-    }
+  async uploadFrs(@Req() req: RequestUserInterface, @Res() res: Response) {
+    const result = await this.submissionService.uploadDocument(req, res, req.file, DOCUMENT_ENUM.FRS);
+    return this.success(result);
   }
-
   @httpPost('/upload/payment-history', upload.single('file'))
-  async uploadPaymentHistory(@request() req: Request) {
-    await this.uploadDocument('40621210004', DOCUMENT_ENUM.PAYMENT_HISTORY, req.file);
+  async uploadPaymentHistory(@Req() req: RequestUserInterface, @Res() res: Response) {
+    const result = await this.submissionService.uploadDocument(req, res, req.file, DOCUMENT_ENUM.PAYMENT_HISTORY);
+    return this.success(result);
   }
-
   @httpPost('/upload/transcript', upload.single('file'))
-  async uploadTranscript(@request() req: Request) {
-    await this.uploadDocument('40621210004', DOCUMENT_ENUM.TRANSCRIPT, req.file);
+  async uploadTranscript(@Req() req: RequestUserInterface, @Res() res: Response) {
+    const result = await this.submissionService.uploadDocument(req, res, req.file, DOCUMENT_ENUM.TRANSCRIPT);
+    return this.success(result);
   }
-
-  private async uploadDocument(nim: string, document: DOCUMENT_ENUM, file: Express.Multer.File) : Promise<UploadedObjectInfo> {
-    if (!isValidExtension(file.originalname, 'pdf')) {
-      throw ValidationException.newError('file', VALIDATION.INVALID_EXTENSION, 'The file extension is invalid.')
-    }
-    const newFilename = document.toLowerCase() + '.' + getExtension(file.originalname);
-    const objectName = this.minioService.getPrefix('submission', nim, newFilename)
-    return await this.minioService.saveObject(objectName, file)
-  }
-
   @httpGet('/document/:filename')
-  async getDocument(@requestParam('filename') filename: string) {
-    try {
-      const object = this.minioService.getPrefix('submission','40621210004', filename);
-      const res = await this.minioService.getPreSignedUrl(object);
-      return this.success(res);
-    } catch (e) {
-      return this.fail((e as Error).message);
-    }
+  async getDocument(@requestParam('filename') filename: string, @Req() req: RequestUserInterface, @Res() res: Response) {
+    const result = await this.submissionService.getDocument(req, filename, res);
+    return this.success(result);
+  }
+  @httpGet('/document-info/:filename')
+  async getDocumentInfo(@requestParam('filename') filename: string, @Req() req: RequestUserInterface, @Res() res: Response) {
+    const result = await this.submissionService.getDocumentInfo(req, filename, res);
+    return this.success(result);
   }
 }

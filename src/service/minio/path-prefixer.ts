@@ -1,4 +1,4 @@
-import { ltrim, rtrim } from '@core/mediable/utils';
+import { ltrim, rtrim } from '@util/helpers';
 
 export default class PathPrefixer {
   constructor(private readonly _prefix: string, private _separator = '/') {
