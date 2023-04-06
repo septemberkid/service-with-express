@@ -3,15 +3,17 @@ import HttpException from '@exception/http.exception';
 import { CLIENTS, RegisteredClient } from '../config/client';
 import Encryptor from '@util/encryptor';
 import { isTimeNowOrAfter, isValidFormat, nextMinutes } from '@util/date-time';
-import { APP_HKEY_EXPIRED } from '@config';
+import { APP_HKEY_EXPIRED, APP_ROOT_PATH } from '@config';
 
 const useClientMiddleware = (
   req: Request,
   res: Response,
   _next: NextFunction
 ) => {
-  validate(req, res, _next);
-  validationHkey(req, res, _next);
+  if (req.path.includes(APP_ROOT_PATH)) {
+    validate(req, res, _next);
+    validationHkey(req, res, _next);
+  }
   return _next();
 };
 
