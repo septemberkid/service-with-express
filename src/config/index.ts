@@ -51,12 +51,9 @@ export const dbConfig: Options<PostgreSqlDriver> = {
     idleTimeoutMillis: Number(DB_IDLE_TIMEOUT) || 1800000,
     acquireTimeoutMillis: Number(DB_CONNECTION_TIMEOUT) || 60000,
   },
-  entities: [path.dirname(__dirname) + '/entity'],
-  migrations: {
-    path: path.dirname(path.dirname(__dirname)) + '/migrations',
-    tableName: 'sys_migration',
-    transactional: true,
-  },
+  entities: [
+    path.join(path.dirname(__dirname), 'entity')
+  ]
 };
 export const minioConfig: ClientOptions = {
   endPoint: MINIO_ENDPOINT,
