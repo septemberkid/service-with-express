@@ -3,4 +3,8 @@
 /dist
 /logs
 /node_modules
+/temp
+ecosystem.config.js.development.stub
+ecosystem.config.js.production.stub
 .env.development
+.env.production

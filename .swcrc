@@ -1,4 +1,6 @@
 {
+  "$schema": "https://json.schemastore.org/swcrc",
+  "minify": false,
   "jsc": {
     "parser": {
       "syntax": "typescript",
@@ -15,7 +17,9 @@
     "keepClassNames": true,
     "loose": false,
     "minify": {
-      "compress": true,
+      "compress": {
+        "unused": true
+      },
       "mangle": false
     },
     "baseUrl": "src",
@@ -38,6 +42,6 @@
     "type": "commonjs"
   },
   "exclude": [
-    "__tests__",
+    "src/__test__/**"
   ]
 }
