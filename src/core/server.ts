@@ -80,6 +80,9 @@ export default class Server {
       })
       .catch((error) => {
         process.stdout.write(chalk.redBright(`${error}\n`));
+        if (NODE_ENV === 'development') {
+          console.trace(error)
+        }
       });
   }
 
