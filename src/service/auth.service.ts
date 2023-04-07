@@ -21,6 +21,7 @@ import USER_TYPE from '@enums/user-type.enum';
 import { generateRefreshToken, isExpired, nowAsTimestamp } from '@util/date-time';
 import AppRefreshTokenEntity from '@entity/app/app-refresh-token.entity';
 import RefreshTokenRequestDto from '@dto/auth/refresh-token-request.dto';
+import { StudentInfoInterface } from '@interface/jwt-payload.interface';
 
 @provide(TYPES.AUTH_SERVICE)
 export default class AuthService {
@@ -32,16 +33,19 @@ export default class AuthService {
 
   public async authorize(loginRequestDto: LoginRequestDto, req: Request, res: Response): Promise<AuthResponseDto> {
     const { email, password } = loginRequestDto;
-    const user: AppUserEntity = await this.validateUser(email, res);
+    const user: AppUserEntity = await this.getUserByEmail(email, res);
     await this.verifyPassword(password, user.password, res);
+    await this.checkActiveUser(user, res);
     // get roles
     const roles: string[] = await this.getRolesByUserId(user.id);
+    const studentInfo = await this.getStudentInfo(user.user_type, email, res);
     // generate token
     const client = getClientName(req);
     const token = await Encryptor.generateJWT({
       xid: user.xid,
       full_name: user.name,
       user_type: user.user_type,
+      student_info: studentInfo,
       roles
     }, client);
     const refreshToken = await this.generateRefreshToken(user.id);
@@ -58,16 +62,16 @@ export default class AuthService {
     try {
       const userId: number = await this.validateRefreshToken(dto.refresh_token, res);
       const refreshToken: string = await this.generateRefreshToken(userId);
-      const user: AppUserEntity = await this.getUserByUserId(userId);
-      // check if user is active
-      if (user.status === USER_STATUS.INACTIVE)
-        throw new HttpException(401, res.__('user.user_inactive'));
+      const user: AppUserEntity = await this.getUserByUserId(userId, res);
+      await this.checkActiveUser(user, res)
+      const studentInfo = await this.getStudentInfo(user.user_type, user.email, res);
       const roles: string[] = await this.getRolesByUserId(userId);
       const client = getClientName(req);
       const token: string = await Encryptor.generateJWT({
         xid: user.xid,
         user_type: user.user_type,
         full_name: user.name,
+        student_info: studentInfo,
         roles: roles
       }, client);
       await this.em.commit();
@@ -82,9 +86,7 @@ export default class AuthService {
   }
   public async register(registerRequestDto: RegisterRequestDto, req: Request, res: Response): Promise<AuthResponseDto> {
     // check if email not yet registered
-    const registeredUser: AppUserEntity = await this.getUserByEmail(registerRequestDto.email);
-    if (registeredUser) throw new HttpException(400, res.__('user.duplicate_email'));
-
+    await this.suspectDuplicateEmail(registerRequestDto.email, res);
     // check if faculty is valid
     const faculty: MasterFacultyEntity = await this.getFaculty(registerRequestDto.faculty_xid);
     if (!faculty) throw new HttpException(400, 'The selected faculty is invalid.');
@@ -102,12 +104,26 @@ export default class AuthService {
       // assign role
       await this.assignRole(user.id, faculty.id, studyProgram.id, ROLE_ENUM.STUDENT);
       // insert into student table
-      await this.assignToStudent(nim, full_name, email,faculty.id, studyProgram.id);
+      const student = await this.assignToStudent(nim, full_name, email,faculty.id, studyProgram.id);
+      const studentInfo: StudentInfoInterface = {
+        xid: student.xid,
+        name: student.name,
+        nim: student.nim,
+        faculty: {
+          xid: faculty.xid,
+          name: faculty.name
+        },
+        study_program: {
+          xid: studyProgram.xid,
+          name: studyProgram.name,
+        }
+      }
       const client = getClientName(req);
       const token = await Encryptor.generateJWT({
         xid: user.xid,
         full_name,
         user_type: user.user_type,
+        student_info: studentInfo,
         roles: [
           ROLE_ENUM.STUDENT
         ]
@@ -124,50 +140,57 @@ export default class AuthService {
       throw new HttpException(500, res.__('error.general'));
     }
   }
-  private validateUser = async (email: string, res: Response) : Promise<AppUserEntity> => {
-    const user = await this.getUserByEmail(email);
-    // check user
-    if (!user) throw new HttpException(401, res.__('user.invalid_email_or_password'));
+  private async checkActiveUser(user: AppUserEntity, res: Response): Promise<AppUserEntity> {
     // check if user is active
     if (user.status === USER_STATUS.INACTIVE)
       throw new HttpException(401, res.__('user.user_inactive'));
     return user;
   }
-  private generatePassword = async (md5Password: string): Promise<string> => {
+  private async generatePassword(md5Password: string): Promise<string> {
     return await Encryptor.hashBcrypt(md5Password);
   }
-  private verifyPassword = async (md5Password: string, hashPassword: string, res: Response) : Promise<void> => {
+  private async verifyPassword(md5Password: string, hashPassword: string, res: Response): Promise<void> {
     const isMatch = await Encryptor.compareBcrypt(md5Password, hashPassword);
     if (!isMatch) throw new HttpException(401, res.__('user.invalid_email_or_password'));
   }
-  private getRolesByUserId = async (userId: number): Promise<string[]> => {
+  private async getRolesByUserId(userId: number): Promise<string[]> {
     const roles = await this.em.find(AppUserRoleEntity,{
       user_id: userId
     });
     return roles.map((role) => role.role_code);
   }
-  private getUserByEmail = async (email: string): Promise<AppUserEntity> => {
-    return this.em.findOne(AppUserEntity, {
+  private async suspectDuplicateEmail(email: string, res: Response) {
+    const user = await this.em.findOne(AppUserEntity, {
       email
     })
+    if (user) throw new HttpException(400, res.__('user.duplicate_email'));
   }
-  private getUserByUserId = async (userId: number): Promise<AppUserEntity> => {
-    return this.em.findOne(AppUserEntity, {
+  private async getUserByEmail(email: string, res: Response): Promise<AppUserEntity> {
+    const user = await this.em.findOne(AppUserEntity, {
+      email
+    })
+    if (!user) throw new HttpException(401, res.__('user.invalid_email_or_password'));
+    return user;
+  }
+  private async getUserByUserId(userId: number, res: Response): Promise<AppUserEntity> {
+    const user = await this.em.findOne(AppUserEntity, {
       id: userId
     })
+    if (!user) throw new HttpException(401, res.__('user.invalid_email_or_password'));
+    return user;
   }
-  private getFaculty = async (xid: string): Promise<MasterFacultyEntity> => {
+  private async getFaculty(xid: string): Promise<MasterFacultyEntity> {
     return this.em.findOne(MasterFacultyEntity, {
       xid
     })
   }
-  private getProgramStudy = async (facultyId: number, programStudyXid: string): Promise<MasterStudyProgramEntity> => {
+  private async getProgramStudy(facultyId: number, programStudyXid: string): Promise<MasterStudyProgramEntity> {
     return this.em.findOne(MasterStudyProgramEntity, {
       faculty_id: facultyId,
       xid: programStudyXid
     })
   }
-  private createUser = async (email: string, name: string, password: string): Promise<AppUserEntity> => {
+  private async createUser(email: string, name: string, password: string): Promise<AppUserEntity> {
     const user = this.em.create(AppUserEntity, {
       email,
       name,
@@ -180,7 +203,7 @@ export default class AuthService {
     await this.em.persistAndFlush(user);
     return user;
   }
-  private assignRole = async (userId: number, faculty_id: number, study_program_id: number, ...roles: ROLE_ENUM[]): Promise<void> => {
+  private async assignRole(userId: number, faculty_id: number, study_program_id: number, ...roles: ROLE_ENUM[]): Promise<void> {
     for (const r of roles) {
       const role: AppUserRoleEntity = this.em.create(AppUserRoleEntity, {
         user_id: userId,
@@ -191,7 +214,7 @@ export default class AuthService {
       await this.em.persistAndFlush(role);
     }
   }
-  private assignToStudent = async (nim: string, fullName: string, email: string, facultyId: number, studyProgramId: number): Promise<MasterStudentEntity> => {
+  private async assignToStudent(nim: string, fullName: string, email: string, facultyId: number, studyProgramId: number): Promise<MasterStudentEntity> {
     const alreadyExistByEmail: MasterStudentEntity = await this.em.findOne(MasterStudentEntity, {
       email
     });
@@ -210,7 +233,7 @@ export default class AuthService {
     await this.em.persistAndFlush(student);
     return student;
   }
-  private generateRefreshToken = async (userId: number): Promise<string> => {
+  private async generateRefreshToken(userId: number): Promise<string> {
     // remove old refresh token by user id
     const refreshTokens = await this.em.find(AppRefreshTokenEntity, {
       user_id: userId
@@ -226,7 +249,7 @@ export default class AuthService {
     await this.em.persistAndFlush(refreshToken);
     return randToken;
   }
-  private validateRefreshToken = async (refreshToken: string, res: Response): Promise<number> => {
+  private async validateRefreshToken(refreshToken: string, res: Response): Promise<number> {
     const ref: AppRefreshTokenEntity = await this.em.findOne(AppRefreshTokenEntity, {
       id: refreshToken
     });
@@ -236,5 +259,37 @@ export default class AuthService {
       throw new HttpException(401, res.__('refresh_token.expired'));
     }
     return ref.user_id;
+  }
+  private async getStudentInfo(userType: string, email: string, res: Response): Promise<StudentInfoInterface> {
+    if (userType == USER_TYPE.LECTURE)
+      return null;
+    const student = await this.em.findOne(MasterStudentEntity, {
+      email
+    }, {
+      populate: ['faculty', 'studyProgram']
+    })
+    if (!student)
+      throw new HttpException(400, res.__('submission.student_not_found'))
+    let faculty: {xid: string, name: string} = null;
+    let studyProgram: {xid: string, name: string} = null;
+    if (student.faculty.xid && student.faculty.name) {
+      faculty = {
+        xid: student.faculty.xid,
+        name: student.faculty.name,
+      }
+    }
+    if (student.studyProgram.xid && student.studyProgram.name) {
+      studyProgram = {
+        xid: student.studyProgram.xid,
+        name: student.studyProgram.name,
+      }
+    }
+    return {
+      xid: student.xid,
+      nim: student.nim,
+      name: student.name,
+      faculty,
+      study_program: studyProgram,
+    }
   }
 }

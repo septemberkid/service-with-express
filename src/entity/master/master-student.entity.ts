@@ -1,5 +1,7 @@
-import { Entity, Property } from '@mikro-orm/core';
+import { Entity, LoadStrategy, ManyToOne, Property } from '@mikro-orm/core';
 import { BaseEntity } from '@entity/base.entity';
+import MasterFacultyEntity from '@entity/master/master-faculty.entity';
+import MasterStudyProgramEntity from '@entity/master/master-study-program.entity';
 
 @Entity({
   tableName: 'mst_student',
@@ -42,4 +44,16 @@ export default class MasterStudentEntity extends BaseEntity {
     type: 'int',
   })
   study_program_id: number;
+
+  @ManyToOne(() => MasterFacultyEntity, {
+    strategy: LoadStrategy.JOINED,
+    nullable: true
+  })
+  faculty?: MasterFacultyEntity
+
+  @ManyToOne(() => MasterStudyProgramEntity, {
+    strategy: LoadStrategy.JOINED,
+    nullable: true
+  })
+  studyProgram?: MasterStudyProgramEntity
 }

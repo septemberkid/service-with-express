@@ -1,5 +1,6 @@
-import { Entity, Property, wrap } from '@mikro-orm/core';
+import { Collection, Entity, OneToMany, Property, wrap } from '@mikro-orm/core';
 import { BaseEntity } from '@entity/base.entity';
+import MasterStudentEntity from '@entity/master/master-student.entity';
 
 @Entity({
   tableName: 'mst_faculty',
@@ -26,4 +27,7 @@ export default class MasterFacultyEntity extends BaseEntity {
     }
     return o;
   }
+
+  @OneToMany(() => MasterStudentEntity, (f) => f.faculty)
+  students= new Collection<MasterStudentEntity>(this)
 }
