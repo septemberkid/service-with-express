@@ -14,6 +14,7 @@ import ValidationException from '@exception/validation.exception';
 import VALIDATION from '@enums/validation.enum';
 import MinioHelper from '@service/minio/minio.helper';
 import AppUserEntity from '@entity/app/app-user.entity';
+import CustomBucketItemInterface from '@interface/custom-bucket-item.interface';
 
 const path = 'submission'
 @provide(TYPES.SUBMISSION_SERVICE)
@@ -47,10 +48,17 @@ export default class SubmissionService {
   private getStudentSubmissionPath(nim: string, filename: string): string {
     return `${path}/${nim}/${filename}`;
   }
-  public async getDocuments(req: RequestUserInterface, res: Response): Promise<BucketItem[]> {
+  public async getDocuments(req: RequestUserInterface, res: Response): Promise<CustomBucketItemInterface[]> {
     const student: MasterStudentEntity = await this.validateStudent(req.user.xid, res)
     const path = this.getStudentDocumentsPath(student.nim)
-    return this.minioService.listObject(path)
+    const temps: BucketItem[] = await this.minioService.listObject(path);
+    const items: CustomBucketItemInterface[] = [];
+    for (const temp of temps) {
+      const preSignedUrl = await this.minioService.temporaryUrl(temp.name)
+      const item = MinioHelper.mapBucketItemToCustomBucketItem(temp, preSignedUrl);
+      items.push(item)
+    }
+    return items;
   }
   public async getDocument(req: RequestUserInterface, filename: string, res: Response): Promise<string> {
     const student: MasterStudentEntity = await this.validateStudent(req.user.xid, res)

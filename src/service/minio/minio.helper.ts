@@ -1,6 +1,8 @@
 import SourceAdapter from '@service/minio/source.adapter';
 import MinioSourceAdapter from '@service/minio/minio-source.adapter';
 import { isEmpty } from '@util/helpers';
+import { BucketItem } from 'minio';
+import CustomBucketItemInterface from '@interface/custom-bucket-item.interface';
 
 export enum Media {
   TYPE_IMAGE = 'IMAGE',
@@ -96,5 +98,19 @@ export default class MinioHelper {
       type = Media.TYPE_OTHER;
     }
     return type;
+  }
+  static getFilename(path: string): string {
+    const parts = path.split('/');
+    return parts[parts.length - 1];
+  }
+  static mapBucketItemToCustomBucketItem(bi: BucketItem, url: string): CustomBucketItemInterface {
+    const filename = this.getFilename(bi.name);
+    return {
+      filename,
+      url,
+      etag: bi.etag,
+      size: bi.size,
+      last_modified: bi.lastModified
+    } as CustomBucketItemInterface
   }
 }
