@@ -1,15 +1,11 @@
-import { Entity, EntityRepositoryType, Property, wrap } from '@mikro-orm/core';
+import { Entity, Property, wrap } from '@mikro-orm/core';
 import { BaseEntity } from '@entity/base.entity';
-import PaginationRepository from '@repository/pagination.repository';
 
 @Entity({
   tableName: 'mst_study_program',
   schema: 'public',
-  customRepository: () => PaginationRepository<MasterStudyProgramEntity>
 })
 export default class MasterStudyProgramEntity extends BaseEntity {
-  [EntityRepositoryType]?: PaginationRepository<MasterStudyProgramEntity>;
-  
   @Property({
     unique: true,
     type: 'uuid',
