@@ -1,7 +1,8 @@
-import { PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
 import ModifiedByInterface from '@interface/modified-by.interface';
 import { nowAsTimestamp } from '@util/date-time';
 
+@Entity({ abstract: true })
 export abstract class BaseEntity {
 
   @PrimaryKey({
