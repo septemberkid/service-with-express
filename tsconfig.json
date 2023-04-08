@@ -27,9 +27,6 @@
     "skipLibCheck": true,
     "baseUrl": "src",
     "paths": {
-      "@config": [
-        "config"
-      ],
       "@controller/*": [
         "controller/*"
       ],

@@ -3,23 +3,28 @@ import TYPES from '@enums/types.enum';
 import { inject } from 'inversify';
 import { BucketItem, BucketItemStat, BucketStream, Client, UploadedObjectInfo } from 'minio';
 import PathPrefixer from '@service/minio/path-prefixer';
-import { minioBucketName, minioExpired } from '@config';
 import MinioException, { MINIO_OPERATION } from '@service/minio/minio.exception';
 import SourceAdapter from '@service/minio/source.adapter';
 import MinioHelper from '@service/minio/minio.helper';
+import { Configuration } from '@core/config';
 
 @provide(TYPES.MINIO_SERVICE)
 export default class MinioService {
   private pathPrefixer: PathPrefixer;
+  private readonly bucketName: string;
+  private readonly expired: number;
   constructor(
     @inject<Client>(TYPES.MINIO_INSTANCE)
     private s3Client: Client
   ) {
     this.pathPrefixer = new PathPrefixer('');
+    const config = Configuration.instance();
+    this.bucketName = config.get('MINIO_BUCKET_NAME');
+    this.expired = config.get('MINIO_EXPIRED')
   }
 
   private getStreamOfListObjects(path: string): BucketStream<BucketItem> {
-    return this.s3Client.listObjectsV2(minioBucketName, path, true)
+    return this.s3Client.listObjectsV2(this.bucketName, path, true)
   }
   fileExist(path: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
@@ -45,7 +50,7 @@ export default class MinioService {
       if (!isFileExist) {
         reject(MinioException.dueError(path, MINIO_OPERATION.GENERATE_TEMPORARY_URL, 'File not found.'));
       } else {
-        this.s3Client.presignedGetObject(minioBucketName, path, minioExpired,(error, result) => {
+        this.s3Client.presignedGetObject(this.bucketName, path, this.expired,(error, result) => {
           if (error)
             reject(MinioException.dueError(path, MINIO_OPERATION.GENERATE_TEMPORARY_URL, error.message));
           if (result)
@@ -58,7 +63,7 @@ export default class MinioService {
   getStateObject(path: string): Promise<BucketItemStat> {
     return new Promise((resolve, reject) => {
       path = this.pathPrefixer.prefixPath(path);
-      this.s3Client.statObject(minioBucketName, path, (error, result) => {
+      this.s3Client.statObject(this.bucketName, path, (error, result) => {
         if (error)
           reject(MinioException.dueError(path, MINIO_OPERATION.OPERATION_RETRIEVE_STAT_OBJECT, error.message))
         if (result) {
@@ -69,7 +74,7 @@ export default class MinioService {
   }
   private putObject(path: string, source: SourceAdapter, ): Promise<UploadedObjectInfo> {
     return new Promise((resolve, reject) => {
-      this.s3Client.putObject(minioBucketName, path, source.getBufferSource(), source.size(), {
+      this.s3Client.putObject(this.bucketName, path, source.getBufferSource(), source.size(), {
         'Content-Type': source.mimeType()
       }, (error, result) => {
         if (error)
@@ -81,7 +86,7 @@ export default class MinioService {
   }
   tagging(path: string, tags: Record<string, string>): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.s3Client.setObjectTagging(minioBucketName, path, tags,async (error) => {
+      this.s3Client.setObjectTagging(this.bucketName, path, tags,async (error) => {
         if (error) {
           reject(MinioException.dueError(path, MINIO_OPERATION.OPERATION_TAGGING, error.message ?? ''))
         } else {

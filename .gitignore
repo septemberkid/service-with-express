@@ -8,3 +8,4 @@ ecosystem.config.js.development.stub
 ecosystem.config.js.production.stub
 .env.development
 .env.production
+.env.test

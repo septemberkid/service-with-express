@@ -2,10 +2,11 @@ import { NextFunction, Request, Response } from 'express';
 import HttpException from '@exception/http.exception';
 import { Logger } from '@util/logger';
 import ResponseDto from '@dto/response.dto';
-import { NODE_ENV } from '@config';
 import ValidationException from '@exception/validation.exception';
 import { MulterError } from 'multer';
+import { Configuration } from '@core/config';
 
+const config = Configuration.instance();
 const useErrorMiddleware = (
   error: HttpException,
   req: Request,
@@ -26,7 +27,7 @@ const useErrorMiddleware = (
     console.error(
       `[${req.method}] ${req.path} >> HttpCode:: ${httpCode}, Message:: ${message}`
     );
-    if (NODE_ENV === 'production') {
+    if (config.get('NODE_ENV') === 'production') {
       logger.logMessage(
         `[${req.method}] ${req.path} >> HttpCode:: ${httpCode}, Message:: ${message}`, 'error'
       );

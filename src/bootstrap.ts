@@ -1,6 +1,9 @@
 import 'reflect-metadata';
-import Server from '@core/server';
+import { createServerApp, createContainer } from '@core/app';
+import { Configuration } from '@core/config';
 
 (async () => {
-  new Server();
+  const config = Configuration.instance();
+  const container = await createContainer();
+  createServerApp(container, config)
 })();

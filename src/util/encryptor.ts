@@ -1,33 +1,43 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { JWT_EXPIRED, JWT_ISSUER, JWT_SECRET } from '@config';
 import JwtPayloadInterface from '@interface/jwt-payload.interface';
 import { compareSync, genSaltSync, hashSync } from 'bcrypt';
 import Crypto from 'crypto';
 import { generateTokenExpired } from '@util/date-time';
 import { IUserPayload } from '@interface/request-user.interface';
-
-const secret = new TextEncoder().encode(JWT_SECRET);
 export default class Encryptor {
   static sha256(data: string) {
     return Crypto.createHash('sha256').update(data).digest('hex');
   }
-  static generateJWT = (payload: JwtPayloadInterface, audience: string) : Promise<string> => {
+  static generateJWT = (params: {
+    payload: JwtPayloadInterface,
+    audience: string,
+    secret: string,
+    issuer?: string,
+    expired?: number,
+  }): Promise<string> => {
+    const sec = new TextEncoder().encode(params.secret);
     return new SignJWT({
-      ...payload
+      ...params.payload
     })
       .setProtectedHeader({
         alg: 'HS256'
       })
       .setIssuedAt()
-      .setIssuer(JWT_ISSUER || 'web_service')
-      .setAudience(audience)
-      .setExpirationTime(generateTokenExpired(JWT_EXPIRED))
-      .sign(secret);
+      .setIssuer(params.issuer || 'web_service')
+      .setAudience(params.audience)
+      .setExpirationTime(generateTokenExpired(params.expired || 3600))
+      .sign(sec);
   }
-  static verifyToken = async (token: string, audience: string): Promise<IUserPayload> => {
-    const {payload} = await jwtVerify(token, secret, {
-      issuer: JWT_ISSUER || 'web_service',
-      audience
+  static verifyToken = async (params: {
+    token: string,
+    audience: string,
+    secret: string,
+    issuer?: string,
+  }): Promise<IUserPayload> => {
+    const sec = new TextEncoder().encode(params.secret);
+    const {payload} = await jwtVerify(params.token, sec, {
+      issuer: params.issuer || 'web_service',
+      audience: params.audience
     });
     return {
       xid: payload.xid as string,

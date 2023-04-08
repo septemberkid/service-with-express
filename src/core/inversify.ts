@@ -6,8 +6,8 @@ import path from 'path';
 import { GetRepository, MikroORM } from '@mikro-orm/core';
 import { EntityRepository, PostgreSqlDriver, SqlEntityManager } from '@mikro-orm/postgresql';
 import { Client as MinioClient } from 'minio';
-import { minioConfig } from '@config';
 import chalk from 'chalk';
+import { Configuration } from '@core/config';
 
 export const bindings = new AsyncContainerModule(async (bind): Promise<void> => {
   const databaseClient: DatabaseClient = new DatabaseClient();
@@ -45,7 +45,14 @@ const bindControllers = async (bind: interfaces.Bind) => {
 }
 const initMinio = async (bind: interfaces.Bind) => {
   try {
-    const minio: MinioClient = new MinioClient(minioConfig);
+    const config = Configuration.instance();
+    const minio: MinioClient = new MinioClient({
+      endPoint: config.get('MINIO_ENDPOINT'),
+      port: config.get('MINIO_PORT'),
+      useSSL: config.get('MINIO_USE_SSL'),
+      accessKey: config.get('MINIO_ACCESS_KEY'),
+      secretKey: config.get('MINIO_SECRET_KEY'),
+    });
     bind<MinioClient>(TYPES.MINIO_INSTANCE).toConstantValue(minio)
   } catch (error) {
     process.stdout.write(chalk.redBright(`${(error as Error).message}\n`));

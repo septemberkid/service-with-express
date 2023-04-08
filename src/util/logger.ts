@@ -1,12 +1,12 @@
 import { existsSync, mkdirSync } from 'fs';
 import winston, { format, Logger as WinstonLogger } from 'winston';
 import winstonDaily, { DailyRotateFileTransportOptions } from 'winston-daily-rotate-file';
-import { LOG_DIR, NODE_ENV } from '@config';
 import { ProvideSingleton } from '@util/decorator';
 import TYPES from '@enums/types.enum';
 import { resolve } from 'path';
 import { FileTransportOptions } from 'winston/lib/winston/transports';
 import { toUppercase } from '@util/helpers';
+import { Configuration } from '@core/config';
 
 interface WinstonLoggerOptions {
   file: FileTransportOptions;
@@ -18,6 +18,9 @@ type LOG_TYPE = {
 }
 
 // default configs
+const config = Configuration.instance();
+const LOG_DIR = config.get('LOG_DIR')
+const NODE_ENV = config.get('NODE_ENV')
 const rootDir: string = resolve(__dirname, '../../');
 const logsDirectory = `${rootDir}/${LOG_DIR||'logs'}`
 const maxsize = 5242880;

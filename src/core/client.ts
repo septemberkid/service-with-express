@@ -26,7 +26,7 @@ const mapRegisteredClientToClient = (): Record<
     res[key as RegisteredClientAppName] = {
       clientId: REGISTERED_CLIENTS[key as RegisteredClientAppName].CLIENT_ID,
       clientSecret:
-        REGISTERED_CLIENTS[key as RegisteredClientAppName].CLIENT_SECRET,
+      REGISTERED_CLIENTS[key as RegisteredClientAppName].CLIENT_SECRET,
     };
   });
   return res;

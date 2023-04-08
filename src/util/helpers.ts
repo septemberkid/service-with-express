@@ -1,7 +1,7 @@
-import { UUID_NAMESPACE } from '@config';
 import { v5 as uuidV5 } from 'uuid';
 import { Request } from 'express';
 
+const UUID_NAMESPACE = 'dae73761-9a06-4455-bff9-99c5dc9aa03d';
 export const toUppercase = (value: string): string => value?.toUpperCase();
 
 export const mapEnumToTypes = <T>(typeEnum: T): { [key in keyof T]: symbol } => {

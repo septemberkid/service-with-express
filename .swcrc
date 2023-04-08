@@ -24,7 +24,6 @@
     },
     "baseUrl": "src",
     "paths": {
-      "@config": ["config"],
       "@controller/*": ["controller/*"],
       "@core/*": ["core/*"],
       "@dto/*": ["dto/*"],

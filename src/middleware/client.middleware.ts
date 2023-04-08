@@ -1,18 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 import HttpException from '@exception/http.exception';
-import { CLIENTS, RegisteredClient } from '../config/client';
 import Encryptor from '@util/encryptor';
 import { isTimeNowOrAfter, isValidFormat, nextMinutes } from '@util/date-time';
-import { APP_HKEY_EXPIRED, APP_ROOT_PATH } from '@config';
+import { Config, Configuration } from '@core/config';
+import { CLIENTS, RegisteredClient } from '@core/client';
 
 const useClientMiddleware = (
   req: Request,
   res: Response,
   _next: NextFunction
 ) => {
-  if (req.path.includes(APP_ROOT_PATH)) {
+  const config = Configuration.instance();
+  if (req.path.includes(config.get('APP_ROOT_PATH'))) {
     validate(req, res, _next);
-    validationHkey(req, res, _next);
+    validationHkey(config, req, res, _next);
   }
   return _next();
 };
@@ -43,6 +44,7 @@ const validate = (request: Request, res: Response, _next: NextFunction) => {
   }
 };
 const validationHkey = (
+  config: Config,
   request: Request,
   res: Response,
   _next: NextFunction
@@ -65,7 +67,7 @@ const validationHkey = (
   const exp = nextMinutes(
     timestamp,
     VALID_FORMAT,
-    Number(APP_HKEY_EXPIRED) || 0
+    config.get('APP_HKEY_EXPIRED') || 0
   );
   if (!isTimeNowOrAfter(exp, VALID_FORMAT)) {
     _next(new HttpException(401, res.__('client.expired_key')));
