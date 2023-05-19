@@ -42,12 +42,15 @@ export default class AuthService {
     // generate token
     const client = getClientName(req);
     const token = await Encryptor.generateJWT({
-      xid: user.xid,
-      full_name: user.name,
-      user_type: user.user_type,
-      student_info: studentInfo,
-      roles
-    }, client);
+      payload: {
+        xid: user.xid,
+        full_name: user.name,
+        user_type: user.user_type,
+        student_info: studentInfo,
+        roles
+      },
+      audience: client
+    });
     const refreshToken = await this.generateRefreshToken(user.id);
     // update last login
     user.last_logged_in_at = nowAsTimestamp();
@@ -68,12 +71,15 @@ export default class AuthService {
       const roles: string[] = await this.getRolesByUserId(userId);
       const client = getClientName(req);
       const token: string = await Encryptor.generateJWT({
-        xid: user.xid,
-        user_type: user.user_type,
-        full_name: user.name,
-        student_info: studentInfo,
-        roles: roles
-      }, client);
+        payload: {
+          xid: user.xid,
+          user_type: user.user_type,
+          full_name: user.name,
+          student_info: studentInfo,
+          roles: roles
+        },
+        audience: client
+      });
       await this.em.commit();
       return new AuthResponseDto({
         token: token,
@@ -120,14 +126,17 @@ export default class AuthService {
       }
       const client = getClientName(req);
       const token = await Encryptor.generateJWT({
-        xid: user.xid,
-        full_name,
-        user_type: user.user_type,
-        student_info: studentInfo,
-        roles: [
-          ROLE_ENUM.STUDENT
-        ]
-      }, client);
+        payload: {
+          xid: user.xid,
+          full_name,
+          user_type: user.user_type,
+          student_info: studentInfo,
+          roles: [
+            ROLE_ENUM.STUDENT
+          ]
+        },
+        audience: client
+      });
       const refreshToken = await this.generateRefreshToken(user.id);
       await this.em.commit();
       return new AuthResponseDto({
@@ -272,10 +281,11 @@ export default class AuthService {
       throw new HttpException(400, res.__('submission.student_not_found'))
     let faculty: {xid: string, name: string} = null;
     let studyProgram: {xid: string, name: string} = null;
-    if (student.faculty.xid && student.faculty.name) {
+    const studentFacultyEntity = student.faculty.getEntity();
+    if (studentFacultyEntity.xid && studentFacultyEntity.name) {
       faculty = {
-        xid: student.faculty.xid,
-        name: student.faculty.name,
+        xid: studentFacultyEntity.xid,
+        name: studentFacultyEntity.name,
       }
     }
     if (student.studyProgram.xid && student.studyProgram.name) {

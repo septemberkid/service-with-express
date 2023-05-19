@@ -12,7 +12,10 @@ const useAuthMiddleware = async (req: RequestUserInterface, res: Response, next:
     throw new HttpException(401, res.__('token.bearer'));
   const token = authorization.split('Bearer ')[1];
   try {
-    req.user = await Encryptor.verifyToken(token, clientName);
+    req.user = await Encryptor.verifyToken({
+      token,
+      audience: clientName,
+    });
     next()
   } catch (e) {
     if (e.name === 'JWTExpired') {

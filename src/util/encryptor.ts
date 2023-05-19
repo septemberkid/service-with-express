@@ -4,6 +4,7 @@ import { compareSync, genSaltSync, hashSync } from 'bcrypt';
 import Crypto from 'crypto';
 import { generateTokenExpired } from '@util/date-time';
 import { IUserPayload } from '@interface/request-user.interface';
+import {Configuration} from '@core/config';
 export default class Encryptor {
   static sha256(data: string) {
     return Crypto.createHash('sha256').update(data).digest('hex');
@@ -11,11 +12,13 @@ export default class Encryptor {
   static generateJWT = (params: {
     payload: JwtPayloadInterface,
     audience: string,
-    secret: string,
-    issuer?: string,
     expired?: number,
   }): Promise<string> => {
-    const sec = new TextEncoder().encode(params.secret);
+    const config = Configuration.instance();
+    const secret: string = config.get('JWT_SECRET');
+    const issuer: string = config.get('JWT_ISSUER')
+
+    const sec = new TextEncoder().encode(secret);
     return new SignJWT({
       ...params.payload
     })
@@ -23,7 +26,7 @@ export default class Encryptor {
         alg: 'HS256'
       })
       .setIssuedAt()
-      .setIssuer(params.issuer || 'web_service')
+      .setIssuer(issuer)
       .setAudience(params.audience)
       .setExpirationTime(generateTokenExpired(params.expired || 3600))
       .sign(sec);
@@ -31,12 +34,13 @@ export default class Encryptor {
   static verifyToken = async (params: {
     token: string,
     audience: string,
-    secret: string,
-    issuer?: string,
   }): Promise<IUserPayload> => {
-    const sec = new TextEncoder().encode(params.secret);
+    const config = Configuration.instance();
+    const secret: string = config.get('JWT_SECRET');
+    const issuer: string = config.get('JWT_ISSUER')
+    const sec = new TextEncoder().encode(secret);
     const {payload} = await jwtVerify(params.token, sec, {
-      issuer: params.issuer || 'web_service',
+      issuer: issuer,
       audience: params.audience
     });
     return {
