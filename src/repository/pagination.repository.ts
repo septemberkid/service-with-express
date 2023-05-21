@@ -3,7 +3,7 @@ import BasePaginatedRequestDto from '@dto/master/base-paginated-request.dto';
 import PageMetaInterface from '@interface/page-meta.interface';
 import { paginationQuery } from '@util/query';
 
-export default class PaginationRepository<E extends object> extends EntityRepository<E> {
+export default abstract class PaginationRepository<E extends object> extends EntityRepository<E> {
   public async pagination(
     entity: { new (...args: string[]) : E },
     where: Record<string, unknown>,

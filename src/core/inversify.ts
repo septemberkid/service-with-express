@@ -8,6 +8,10 @@ import { EntityRepository, PostgreSqlDriver, SqlEntityManager } from '@mikro-orm
 import { Client as MinioClient } from 'minio';
 import chalk from 'chalk';
 import { Configuration } from '@core/config';
+import MstFacultyRepository from '@repository/master/mst.faculty.repository';
+import MasterFacultyEntity from '@entity/master/master-faculty.entity';
+import MasterStudyProgramEntity from '@entity/master/master-study-program.entity';
+import MstStudyProgramRepository from '@repository/master/mst.study.program.repository';
 
 export const bindings = new AsyncContainerModule(async (bind): Promise<void> => {
   const databaseClient: DatabaseClient = new DatabaseClient();
@@ -20,6 +24,7 @@ export const bindings = new AsyncContainerModule(async (bind): Promise<void> => 
     bind<SqlEntityManager<PostgreSqlDriver>>(TYPES.ENTITY_MANAGER).toConstantValue(em);
   }
   await bindRepositories(bind, connection);
+  await newBindRepositories(bind, connection)
   await bindControllers(bind);
   await initMinio(bind);
 });
@@ -58,6 +63,13 @@ const initMinio = async (bind: interfaces.Bind) => {
     process.stdout.write(chalk.redBright(`${(error as Error).message}\n`));
   }
 }
+/**
+ * @deprecated
+ * @param bind
+ * @param bindingName
+ * @param connection
+ * @param entity
+ */
 const bindEntityToRepository = <T extends object, U>(
   bind: interfaces.Bind,
   bindingName: string,
@@ -70,6 +82,10 @@ const bindEntityToRepository = <T extends object, U>(
     })
     .inRequestScope();
 }
+
+/**
+ * @deprecated
+ */
 const bindRepositories = async (bind: interfaces.Bind, connection: MikroORM<PostgreSqlDriver>) => {
   const entities = await new Promise((resolve, _) => {
     glob(
@@ -93,4 +109,10 @@ const bindRepositories = async (bind: interfaces.Bind, connection: MikroORM<Post
       bindEntityToRepository(bind, binding, connection, entity);
     }
   });
+}
+
+
+const newBindRepositories = async (bind: interfaces.Bind, connection: MikroORM<PostgreSqlDriver>) => {
+  bind<MstFacultyRepository>(TYPES.MST_FACULTY_REPOSITORY).toDynamicValue(() => new MstFacultyRepository(connection.em, MasterFacultyEntity));
+  bind<MstStudyProgramRepository>(TYPES.MST_STUDY_PROGRAM_REPOSITORY).toDynamicValue(() => new MstStudyProgramRepository(connection.em, MasterStudyProgramEntity));
 }

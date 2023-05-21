@@ -14,18 +14,20 @@ import { plainToInstance } from 'class-transformer';
 import { populateWhere } from '@util/query';
 import { requestQuery } from '@util/decorator';
 import MasterFacultyEntity from '@entity/master/master-faculty.entity';
-import PaginationRepository from '@repository/pagination.repository';
 import ProgramStudyPaginatedRequestDto from '@dto/master/program-study/program-study-paginated-request.dto';
 import MasterStudyProgramEntity from '@entity/master/master-study-program.entity';
+import MstFacultyRepository from '@repository/master/mst.faculty.repository';
+import MstStudyProgramRepository from '@repository/master/mst.study.program.repository';
 
 @controller('/')
 export default class HomeController extends BaseController {
   @inject<MinioService>(TYPES.MINIO_SERVICE)
   private _minioService: MinioService;
-  @inject('MasterFacultyEntityRepository')
-  private readonly mstFacultyRepo: PaginationRepository<MasterFacultyEntity>
-  @inject('MasterStudyProgramEntityRepository')
-  private readonly mstProgramStudyRepo: PaginationRepository<MasterStudyProgramEntity>
+
+  @inject(TYPES.MST_FACULTY_REPOSITORY)
+  private readonly mstFacultyRepo: MstFacultyRepository
+  @inject(TYPES.MST_STUDY_PROGRAM_REPOSITORY)
+  private readonly mstProgramStudyRepo: MstStudyProgramRepository
 
   @httpGet('')
   async index() {
@@ -62,6 +64,7 @@ export default class HomeController extends BaseController {
         name: wrap => wrap(query.name, 'both')
       },
     })
+    console.log(this.mstFacultyRepo)
     const { result, meta } = await this.mstFacultyRepo.pagination(MasterFacultyEntity, where, query);
     return this.paginated(result, meta);
   }
