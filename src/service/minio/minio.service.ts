@@ -48,7 +48,7 @@ export default class MinioService {
       path = this.pathPrefixer.prefixPath(path)
       const isFileExist = await this.fileExist(path);
       if (!isFileExist) {
-        reject(MinioException.dueError(path, MINIO_OPERATION.GENERATE_TEMPORARY_URL, 'File not found.'));
+        reject(MinioException.dueError(path, MINIO_OPERATION.GENERATE_TEMPORARY_URL, 'File not found.', 404));
       } else {
         this.s3Client.presignedGetObject(this.bucketName, path, this.expired,(error, result) => {
           if (error)
@@ -65,7 +65,7 @@ export default class MinioService {
       path = this.pathPrefixer.prefixPath(path);
       this.s3Client.statObject(this.bucketName, path, (error, result) => {
         if (error)
-          reject(MinioException.dueError(path, MINIO_OPERATION.OPERATION_RETRIEVE_STAT_OBJECT, error.message))
+          reject(MinioException.dueError(path, MINIO_OPERATION.OPERATION_RETRIEVE_STAT_OBJECT, error.message, 404))
         if (result) {
           resolve(result)
         }

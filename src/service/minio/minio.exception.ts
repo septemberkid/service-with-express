@@ -8,12 +8,13 @@ export enum MINIO_OPERATION {
 
 }
 export default class MinioException extends Error {
-  constructor(private path, private operation: MINIO_OPERATION, private reason: string) {
+  constructor(private path, private operation: MINIO_OPERATION, private reason: string, private httpCode: number) {
     super(`Unable to ${operation} operation for: ${path} cause: ${reason}`);
     this.name = 'MinioException'
+    this.httpCode = httpCode;
   }
-  static dueError(path: string, operation: MINIO_OPERATION, reason: string) {
-    return new MinioException(path, operation, reason);
+  static dueError(path: string, operation: MINIO_OPERATION, reason: string, httpCode = 500) {
+    return new MinioException(path, operation, reason, httpCode);
   }
   getOperation(): MINIO_OPERATION {
     return this.operation;
