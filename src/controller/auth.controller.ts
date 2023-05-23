@@ -11,8 +11,6 @@ import RegisterRequestDto from '@dto/auth/register-request.dto';
 import LoginRequestDto from '@dto/auth/login-request.dto';
 import TYPES from '@enums/types.enum';
 import RefreshTokenRequestDto from '@dto/auth/refresh-token-request.dto';
-import useAuthMiddleware from '@middleware/auth.middleware';
-import {RequestUserInterface} from '@interface/request-user.interface';
 
 @controller('/auth')
 export default class AuthController extends BaseController {
@@ -32,7 +30,6 @@ export default class AuthController extends BaseController {
   @httpPost(
     '/refresh-token',
     useHeaderMiddleware(),
-    (req: RequestUserInterface, res, next) => useAuthMiddleware(req, res, next),
     useRequestMiddleware(RefreshTokenRequestDto)
   )
   async refreshToken(@requestBody() body: RefreshTokenRequestDto, @Req() req: Request, @Res() res: Response) {

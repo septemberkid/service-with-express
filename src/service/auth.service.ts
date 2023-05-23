@@ -18,7 +18,7 @@ import { Logger } from '@util/logger';
 import MasterStudentEntity from '@entity/master/master-student.entity';
 import Encryptor from '@util/encryptor';
 import USER_TYPE from '@enums/user-type.enum';
-import { generateRefreshToken, isExpired, nowAsTimestamp } from '@util/date-time';
+import {generateRefreshTokenExpired, isExpired, nowAsTimestamp} from '@util/date-time';
 import AppRefreshTokenEntity from '@entity/app/app-refresh-token.entity';
 import RefreshTokenRequestDto from '@dto/auth/refresh-token-request.dto';
 import { StudentInfoInterface } from '@interface/jwt-payload.interface';
@@ -51,20 +51,21 @@ export default class AuthService {
       },
       audience: client
     });
-    const refreshToken = await this.generateRefreshToken(user.id);
+    const {refresh_token, refresh_token_lifetime} = await this.generateRefreshToken(user.id);
     // update last login
     user.last_logged_in_at = nowAsTimestamp();
     await this.em.persistAndFlush(user);
     return new AuthResponseDto({
       token: token,
-      refresh_token: refreshToken
+      refresh_token,
+      refresh_token_lifetime
     });
   }
   public async refreshToken(dto: RefreshTokenRequestDto, req: Request, res: Response): Promise<AuthResponseDto> {
     await this.em.begin();
     try {
       const userId: number = await this.validateRefreshToken(dto.refresh_token, res);
-      const refreshToken: string = await this.generateRefreshToken(userId);
+      const {refresh_token, refresh_token_lifetime} = await this.generateRefreshToken(userId);
       const user: AppUserEntity = await this.getUserByUserId(userId, res);
       await this.checkActiveUser(user, res)
       const studentInfo = await this.getStudentInfo(user.user_type, user.email, res);
@@ -83,7 +84,8 @@ export default class AuthService {
       await this.em.commit();
       return new AuthResponseDto({
         token: token,
-        refresh_token: refreshToken
+        refresh_token,
+        refresh_token_lifetime
       })
     } catch (e) {
       await this.em.rollback();
@@ -137,11 +139,12 @@ export default class AuthService {
         },
         audience: client
       });
-      const refreshToken = await this.generateRefreshToken(user.id);
+      const {refresh_token, refresh_token_lifetime} = await this.generateRefreshToken(user.id);
       await this.em.commit();
       return new AuthResponseDto({
         token: token,
-        refresh_token: refreshToken
+        refresh_token,
+        refresh_token_lifetime
       });
     } catch (e) {
       await this.em.rollback();
@@ -242,7 +245,7 @@ export default class AuthService {
     await this.em.persistAndFlush(student);
     return student;
   }
-  private async generateRefreshToken(userId: number): Promise<string> {
+  private async generateRefreshToken(userId: number): Promise<{ refresh_token: string, refresh_token_lifetime }> {
     // remove old refresh token by user id
     const refreshTokens = await this.em.find(AppRefreshTokenEntity, {
       user_id: userId
@@ -250,13 +253,17 @@ export default class AuthService {
     await this.em.remove(refreshTokens);
     // create new
     const randToken = generateUUID(userId + nowAsTimestamp());
+    const refreshTokenLifetime = generateRefreshTokenExpired();
     const refreshToken: AppRefreshTokenEntity = this.em.create(AppRefreshTokenEntity, {
       id: randToken,
       user_id: userId,
-      expired_at: generateRefreshToken()
+      expired_at: refreshTokenLifetime
     });
     await this.em.persistAndFlush(refreshToken);
-    return randToken;
+    return {
+      refresh_token: randToken,
+      refresh_token_lifetime: refreshTokenLifetime
+    };
   }
   private async validateRefreshToken(refreshToken: string, res: Response): Promise<number> {
     const ref: AppRefreshTokenEntity = await this.em.findOne(AppRefreshTokenEntity, {
