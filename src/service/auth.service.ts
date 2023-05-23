@@ -245,7 +245,7 @@ export default class AuthService {
     await this.em.persistAndFlush(student);
     return student;
   }
-  private async generateRefreshToken(userId: number): Promise<{ refresh_token: string, refresh_token_lifetime }> {
+  private async generateRefreshToken(userId: number): Promise<{ refresh_token: string, refresh_token_lifetime: number }> {
     // remove old refresh token by user id
     const refreshTokens = await this.em.find(AppRefreshTokenEntity, {
       user_id: userId
@@ -253,16 +253,16 @@ export default class AuthService {
     await this.em.remove(refreshTokens);
     // create new
     const randToken = generateUUID(userId + nowAsTimestamp());
-    const refreshTokenLifetime = generateRefreshTokenExpired();
+    const {text, seconds} = generateRefreshTokenExpired();
     const refreshToken: AppRefreshTokenEntity = this.em.create(AppRefreshTokenEntity, {
       id: randToken,
       user_id: userId,
-      expired_at: refreshTokenLifetime
+      expired_at: text
     });
     await this.em.persistAndFlush(refreshToken);
     return {
       refresh_token: randToken,
-      refresh_token_lifetime: refreshTokenLifetime
+      refresh_token_lifetime: seconds
     };
   }
   private async validateRefreshToken(refreshToken: string, res: Response): Promise<number> {
