@@ -1,19 +1,17 @@
-import { Entity, LoadStrategy, ManyToOne, Property, Ref } from '@mikro-orm/core';
-import { BaseEntity } from '@entity/base.entity';
-import MasterFacultyEntity from '@entity/master/master-faculty.entity';
-import MasterStudyProgramEntity from '@entity/master/master-study-program.entity';
+import {Entity, LoadStrategy, ManyToOne, PrimaryKey, Property, Ref} from '@mikro-orm/core';
+import TimestampEntity from '@entity/timestamp.entity';
+import MasterStudyProgramEntity from "@entity/master/master-study-program.entity";
 
 @Entity({
   tableName: 'mst_student',
   schema: 'public'
 })
-export default class MasterStudentEntity extends BaseEntity {
-  @Property({
-    unique: true,
-    type: 'uuid',
-    nullable: false
+export default class MasterStudentEntity extends TimestampEntity {
+  @PrimaryKey({
+    autoincrement: true,
+    type: 'int',
   })
-  xid: string;
+  id: number;
 
   @Property({
     unique: true,
@@ -36,25 +34,14 @@ export default class MasterStudentEntity extends BaseEntity {
   email: string;
 
   @Property({
-    type: 'int',
+    type: 'int4',
+    name: 'study_program_id'
   })
-  faculty_id: number;
+  studyProgramId: number;
 
-  @Property({
-    type: 'int',
-  })
-  study_program_id: number;
-
-  @ManyToOne(() => MasterFacultyEntity, {
-    strategy: LoadStrategy.JOINED,
+  @ManyToOne(() => MasterStudyProgramEntity, {
     nullable: true,
     ref: true
   })
-  faculty?: Ref<MasterFacultyEntity>
-
-  @ManyToOne(() => MasterStudyProgramEntity, {
-    strategy: LoadStrategy.JOINED,
-    nullable: true
-  })
-  studyProgram?: MasterStudyProgramEntity
+  studyProgram?: Ref<MasterStudyProgramEntity>
 }

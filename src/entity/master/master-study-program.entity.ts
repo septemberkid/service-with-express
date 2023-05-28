@@ -1,22 +1,19 @@
-import { Collection, Entity, OneToMany, Property, wrap } from '@mikro-orm/core';
-import { BaseEntity } from '@entity/base.entity';
-import MasterStudentEntity from '@entity/master/master-student.entity';
+import {Entity, ManyToOne, PrimaryKey, Property, Ref} from '@mikro-orm/core';
+import MasterFacultyEntity from '@entity/master/master-faculty.entity';
 
 @Entity({
   tableName: 'mst_study_program',
   schema: 'public',
 })
-export default class MasterStudyProgramEntity extends BaseEntity {
-  @Property({
-    unique: true,
-    type: 'uuid',
-    nullable: false
+export default class MasterStudyProgramEntity {
+  @PrimaryKey({
+    type: 'int4',
+    autoincrement: true
   })
-  xid: string;
+  id: number;
 
   @Property({
     type: 'string',
-    nullable: false
   })
   name: string;
 
@@ -25,14 +22,15 @@ export default class MasterStudyProgramEntity extends BaseEntity {
   })
   faculty_id: number;
 
-  @OneToMany(() => MasterStudentEntity, (s) => s.studyProgram)
-  students = new Collection<MasterStudentEntity>(this)
-  toJSON(strict = true, strip = ['id', 'faculty_id'], ...args: any[]): { [p: string]: any } {
-    const o = wrap(this, true).toObject(...args);
-    if (strict) {
-      strip.forEach(k => delete o[k]);
-    }
+  @Property({
+    type: 'boolean',
+    default: true
+  })
+  is_active: boolean;
 
-    return o;
-  }
+  @ManyToOne(() => MasterFacultyEntity, {
+    nullable: true,
+    ref: true
+  })
+  faculty?: Ref<MasterFacultyEntity>
 }

@@ -43,3 +43,10 @@ export const rtrim = (str: string, char: string) => {
     return str.replace('\\', '');
   return str.replace(regexTrim, '');
 }
+
+export const numToBoolean = (value: any, defaultValue: boolean) => {
+  if (typeof value == 'undefined')
+    return defaultValue;
+  const result = parseInt(value);
+  return result == 1;
+};

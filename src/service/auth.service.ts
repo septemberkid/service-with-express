@@ -1,27 +1,28 @@
 import RegisterRequestDto from '@dto/auth/register-request.dto';
 import LoginRequestDto from '@dto/auth/login-request.dto';
 import HttpException from '@exception/http.exception';
-import { Request, Response } from 'express';
+import {Request, Response} from 'express';
 import TYPES from '@enums/types.enum';
-import { PostgreSqlDriver, SqlEntityManager } from '@mikro-orm/postgresql';
+import {PostgreSqlDriver, SqlEntityManager} from '@mikro-orm/postgresql';
 import AppUserEntity from '@entity/app/app-user.entity';
-import { provide } from 'inversify-binding-decorators';
-import { inject } from 'inversify';
+import {provide} from 'inversify-binding-decorators';
+import {inject} from 'inversify';
 import MasterFacultyEntity from '@entity/master/master-faculty.entity';
 import MasterStudyProgramEntity from '@entity/master/master-study-program.entity';
-import { generateUUID, getClientName } from '@util/helpers';
+import {generateUUID, getClientName} from '@util/helpers';
 import USER_STATUS from '@enums/user-status.enum';
 import AuthResponseDto from '@dto/auth/auth-response.dto';
-import AppUserRoleEntity from '@entity/app/app-user-role.entity';
-import { ROLE_ENUM } from '@enums/role.enum';
-import { Logger } from '@util/logger';
+import {ROLE_ENUM} from '@enums/role.enum';
+import {Logger} from '@util/logger';
 import MasterStudentEntity from '@entity/master/master-student.entity';
 import Encryptor from '@util/encryptor';
 import USER_TYPE from '@enums/user-type.enum';
 import {generateRefreshTokenExpired, isExpired, nowAsTimestamp} from '@util/date-time';
 import AppRefreshTokenEntity from '@entity/app/app-refresh-token.entity';
 import RefreshTokenRequestDto from '@dto/auth/refresh-token-request.dto';
-import { StudentInfoInterface } from '@interface/jwt-payload.interface';
+import {IAdditionalInfo} from '@interface/jwt-payload.interface';
+import RelUserRoleEntity from '@entity/rel/rel-user-role.entity';
+import {plainToInstance} from 'class-transformer';
 
 @provide(TYPES.AUTH_SERVICE)
 export default class AuthService {
@@ -38,22 +39,23 @@ export default class AuthService {
     await this.checkActiveUser(user, res);
     // get roles
     const roles: string[] = await this.getRolesByUserId(user.id);
-    const studentInfo = await this.getStudentInfo(user.user_type, email, res);
+    const additionalInfo = await this.getAdditionalInfo(user.userType, email, res);
     // generate token
     const client = getClientName(req);
     const token = await Encryptor.generateJWT({
       payload: {
-        xid: user.xid,
-        full_name: user.name,
-        user_type: user.user_type,
-        student_info: studentInfo,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        user_type: user.userType,
+        additional_info: additionalInfo,
         roles
       },
       audience: client
     });
     const {refresh_token, refresh_token_lifetime} = await this.generateRefreshToken(user.id);
     // update last login
-    user.last_logged_in_at = nowAsTimestamp();
+    user.lastLoggedInAt = nowAsTimestamp();
     await this.em.persistAndFlush(user);
     return new AuthResponseDto({
       token: token,
@@ -68,16 +70,17 @@ export default class AuthService {
       const {refresh_token, refresh_token_lifetime} = await this.generateRefreshToken(userId);
       const user: AppUserEntity = await this.getUserByUserId(userId, res);
       await this.checkActiveUser(user, res)
-      const studentInfo = await this.getStudentInfo(user.user_type, user.email, res);
+      const additionalInfo = await this.getAdditionalInfo(user.userType, user.email, res);
       const roles: string[] = await this.getRolesByUserId(userId);
       const client = getClientName(req);
       const token: string = await Encryptor.generateJWT({
         payload: {
-          xid: user.xid,
-          user_type: user.user_type,
-          full_name: user.name,
-          student_info: studentInfo,
-          roles: roles
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          user_type: user.userType,
+          additional_info: additionalInfo,
+          roles
         },
         audience: client
       });
@@ -93,14 +96,15 @@ export default class AuthService {
     }
   }
   public async register(registerRequestDto: RegisterRequestDto, req: Request, res: Response): Promise<AuthResponseDto> {
+    registerRequestDto = plainToInstance(RegisterRequestDto, registerRequestDto);
     // check if email not yet registered
     await this.suspectDuplicateEmail(registerRequestDto.email, res);
     // check if faculty is valid
-    const faculty: MasterFacultyEntity = await this.getFaculty(registerRequestDto.faculty_xid);
+    const faculty: MasterFacultyEntity = await this.getFaculty(registerRequestDto.facultyId);
     if (!faculty) throw new HttpException(400, 'The selected faculty is invalid.');
 
     // check if program study is valid
-    const studyProgram: MasterStudyProgramEntity = await this.getProgramStudy(faculty.id, registerRequestDto.study_program_xid);
+    const studyProgram: MasterStudyProgramEntity = await this.getProgramStudy(faculty.id, registerRequestDto.studyProgramId);
     if (!studyProgram) throw new HttpException(400, 'The selected program study is invalid');
 
     await this.em.begin();
@@ -110,29 +114,28 @@ export default class AuthService {
       const hashPassword: string = await this.generatePassword(password);
       const user: AppUserEntity = await this.createUser(email,full_name, hashPassword);
       // assign role
-      await this.assignRole(user.id, faculty.id, studyProgram.id, ROLE_ENUM.STUDENT);
+      await this.assignRole(user.id, ROLE_ENUM.STUDENT);
       // insert into student table
-      const student = await this.assignToStudent(nim, full_name, email,faculty.id, studyProgram.id);
-      const studentInfo: StudentInfoInterface = {
-        xid: student.xid,
-        name: student.name,
-        nim: student.nim,
+      const student = await this.assignToStudent(nim, full_name, email,studyProgram.id);
+      const additionalInfo: IAdditionalInfo = {
+        identifier_id: student.nim,
         faculty: {
-          xid: faculty.xid,
+          id: faculty.id,
           name: faculty.name
         },
         study_program: {
-          xid: studyProgram.xid,
+          id: studyProgram.id,
           name: studyProgram.name,
         }
       }
       const client = getClientName(req);
       const token = await Encryptor.generateJWT({
         payload: {
-          xid: user.xid,
-          full_name,
-          user_type: user.user_type,
-          student_info: studentInfo,
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          user_type: user.userType,
+          additional_info: additionalInfo,
           roles: [
             ROLE_ENUM.STUDENT
           ]
@@ -166,7 +169,7 @@ export default class AuthService {
     if (!isMatch) throw new HttpException(401, res.__('user.invalid_email_or_password'));
   }
   private async getRolesByUserId(userId: number): Promise<string[]> {
-    const roles = await this.em.find(AppUserRoleEntity,{
+    const roles = await this.em.find(RelUserRoleEntity,{
       user_id: userId
     });
     return roles.map((role) => role.role_code);
@@ -191,15 +194,17 @@ export default class AuthService {
     if (!user) throw new HttpException(401, res.__('user.invalid_email_or_password'));
     return user;
   }
-  private async getFaculty(xid: string): Promise<MasterFacultyEntity> {
+  private async getFaculty(id: number): Promise<MasterFacultyEntity> {
     return this.em.findOne(MasterFacultyEntity, {
-      xid
+      id,
+      is_active: true
     })
   }
-  private async getProgramStudy(facultyId: number, programStudyXid: string): Promise<MasterStudyProgramEntity> {
+  private async getProgramStudy(facultyId: number, programStudyId: number): Promise<MasterStudyProgramEntity> {
     return this.em.findOne(MasterStudyProgramEntity, {
       faculty_id: facultyId,
-      xid: programStudyXid
+      id: programStudyId,
+      is_active: true
     })
   }
   private async createUser(email: string, name: string, password: string): Promise<AppUserEntity> {
@@ -207,26 +212,22 @@ export default class AuthService {
       email,
       name,
       password,
-      xid: generateUUID(email),
       status: USER_STATUS.ACTIVE,
-      version: 1,
-      user_type: USER_TYPE.STUDENT
+      userType: USER_TYPE.STUDENT
     });
     await this.em.persistAndFlush(user);
     return user;
   }
-  private async assignRole(userId: number, faculty_id: number, study_program_id: number, ...roles: ROLE_ENUM[]): Promise<void> {
+  private async assignRole(userId: number, ...roles: ROLE_ENUM[]): Promise<void> {
     for (const r of roles) {
-      const role: AppUserRoleEntity = this.em.create(AppUserRoleEntity, {
+      const role: RelUserRoleEntity = this.em.create(RelUserRoleEntity, {
         user_id: userId,
         role_code: r,
-        faculty_id,
-        study_program_id
       });
       await this.em.persistAndFlush(role);
     }
   }
-  private async assignToStudent(nim: string, fullName: string, email: string, facultyId: number, studyProgramId: number): Promise<MasterStudentEntity> {
+  private async assignToStudent(nim: string, fullName: string, email: string, studyProgramId: number): Promise<MasterStudentEntity> {
     const alreadyExistByEmail: MasterStudentEntity = await this.em.findOne(MasterStudentEntity, {
       email
     });
@@ -234,13 +235,10 @@ export default class AuthService {
       await this.em.remove(alreadyExistByEmail);
 
     const student: MasterStudentEntity = this.em.create(MasterStudentEntity,{
-      xid: generateUUID(nim),
       nim,
       name: fullName,
       email,
-      faculty_id: facultyId,
-      study_program_id: studyProgramId,
-      version: 1
+      studyProgramId,
     });
     await this.em.persistAndFlush(student);
     return student;
@@ -276,37 +274,33 @@ export default class AuthService {
     }
     return ref.user_id;
   }
-  private async getStudentInfo(userType: string, email: string, res: Response): Promise<StudentInfoInterface> {
-    if (userType == USER_TYPE.LECTURE)
-      return null;
-    const student = await this.em.findOne(MasterStudentEntity, {
-      email
-    }, {
-      populate: ['faculty', 'studyProgram']
-    })
-    if (!student)
-      throw new HttpException(400, res.__('submission.student_not_found'))
-    let faculty: {xid: string, name: string} = null;
-    let studyProgram: {xid: string, name: string} = null;
-    const studentFacultyEntity = student.faculty.getEntity();
-    if (studentFacultyEntity.xid && studentFacultyEntity.name) {
-      faculty = {
-        xid: studentFacultyEntity.xid,
-        name: studentFacultyEntity.name,
+  private async getAdditionalInfo(userType: string, email: string, res: Response): Promise<IAdditionalInfo> {
+    if (userType == USER_TYPE.LECTURE) {
+
+    } else {
+      const student = await this.em.findOne(MasterStudentEntity, {
+        email
+      }, {
+        populate: [
+          'studyProgram',
+          'studyProgram.faculty',
+        ],
+      })
+      if (!student)
+        throw new HttpException(400, res.__('submission.student_not_found'))
+      const prodi = student.studyProgram.getEntity();
+      const faculty = prodi.faculty.getEntity();
+      return {
+        identifier_id: student.nim,
+        faculty: {
+          id: faculty.id,
+          name: faculty.name
+        },
+        study_program: {
+          id: prodi.id,
+          name: prodi.name
+        }
       }
-    }
-    if (student.studyProgram.xid && student.studyProgram.name) {
-      studyProgram = {
-        xid: student.studyProgram.xid,
-        name: student.studyProgram.name,
-      }
-    }
-    return {
-      xid: student.xid,
-      nim: student.nim,
-      name: student.name,
-      faculty,
-      study_program: studyProgram,
     }
   }
 }

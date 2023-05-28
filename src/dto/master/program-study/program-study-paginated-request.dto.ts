@@ -1,5 +1,7 @@
 import BasePaginatedRequestDto from '@dto/master/base-paginated-request.dto';
-import { IsOptional, IsString, IsUUID } from 'class-validator';
+import {IsNumber, IsOptional, IsString} from 'class-validator';
+import {Expose, Transform} from 'class-transformer';
+import {numToBoolean} from '@util/helpers';
 
 export default class ProgramStudyPaginatedRequestDto extends BasePaginatedRequestDto {
   @IsOptional()
@@ -7,6 +9,13 @@ export default class ProgramStudyPaginatedRequestDto extends BasePaginatedReques
   public name?: string;
 
   @IsOptional()
-  @IsUUID('4')
-  public faculty_xid?: string;
+  @IsNumber()
+  @Expose({name: 'faculty_id'})
+  @Transform(({ value }) => parseInt(value))
+  public facultyId?: number;
+
+  @IsOptional()
+  @Expose({name: 'is_active'})
+  @Transform(({ value }) => numToBoolean(value, true))
+  public isActive?: boolean;
 }

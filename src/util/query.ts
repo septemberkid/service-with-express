@@ -12,7 +12,7 @@ export const calculatedPagination = (total: number, limit: number, offset: numbe
 };
 
 interface IWhere {
-  eq?: { [fieldName: string]: string|number }
+  eq?: { [fieldName: string]: string|number|boolean }
   ilike?: {
     [fieldName: string]: (wrapper: (value: string, mark: 'both' | 'before' | 'after') => string) => string
   },

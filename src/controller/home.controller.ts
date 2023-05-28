@@ -63,8 +63,10 @@ export default class HomeController extends BaseController {
       ilike: {
         name: wrap => wrap(query.name, 'both')
       },
+      eq: {
+        is_active: query.isActive
+      }
     })
-    console.log(this.mstFacultyRepo)
     const { result, meta } = await this.mstFacultyRepo.pagination(MasterFacultyEntity, where, query);
     return this.paginated(result, meta);
   }
@@ -74,25 +76,15 @@ export default class HomeController extends BaseController {
   )
   async getProgramStudyPaginatedList(@requestQuery() query: ProgramStudyPaginatedRequestDto) {
     query = plainToInstance(ProgramStudyPaginatedRequestDto, query);
-    let where = {};
-    // find faculty based on faculty_xid
-    if (!isEmpty(query.faculty_xid)) {
-      const faculty = await this.mstFacultyRepo.findOne({
-        xid: query.faculty_xid
-      });
-      if (faculty) {
-        where['eq'] = {
-          faculty_id: faculty.id
-        }
-      }
-    }
-    where = populateWhere({
-      ...where,
+    const where = populateWhere({
       ilike: {
         name: wrapper => wrapper(query.name, 'both')
+      },
+      eq: {
+        faculty_id: query.facultyId,
+        is_active: query.isActive
       }
     })
-
     const { result, meta } = await this.mstProgramStudyRepo.pagination(MasterStudyProgramEntity, where, query);
     return this.paginated(result, meta);
   }
