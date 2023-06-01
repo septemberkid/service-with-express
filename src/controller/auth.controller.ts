@@ -1,25 +1,25 @@
 import BaseController from '@controller/base.controller';
 import { controller, httpPost } from 'inversify-express-utils';
-import { inject } from 'inversify';
+import {inject} from 'inversify';
 import { Request, Response } from 'express';
 import { Req, Res } from 'routing-controllers';
-import useHeaderMiddleware from '@middleware/header.middleware';
 import useRequestMiddleware from '@middleware/request.middleware';
 import { requestBody } from 'inversify-express-utils/lib/decorators';
-import AuthService from '@service/auth.service';
 import RegisterRequestDto from '@dto/auth/register-request.dto';
 import LoginRequestDto from '@dto/auth/login-request.dto';
 import TYPES from '@enums/types.enum';
 import RefreshTokenRequestDto from '@dto/auth/refresh-token-request.dto';
+import multer from 'multer';
+import AuthServiceImpl from '@service/impl/auth.service-impl';
 
 @controller('/auth')
 export default class AuthController extends BaseController {
-  @inject<AuthService>(TYPES.AUTH_SERVICE)
-  private _authService: AuthService;
+  @inject<AuthServiceImpl>(TYPES.AUTH_SERVICE)
+  private _authService: AuthServiceImpl;
 
   @httpPost(
     '/authorize',
-    useHeaderMiddleware(),
+    multer().none(),
     useRequestMiddleware(LoginRequestDto)
   )
   async authorize(@requestBody() body: LoginRequestDto, @Req() req: Request, @Res() res: Response) {
@@ -29,7 +29,7 @@ export default class AuthController extends BaseController {
 
   @httpPost(
     '/refresh-token',
-    useHeaderMiddleware(),
+    multer().none(),
     useRequestMiddleware(RefreshTokenRequestDto)
   )
   async refreshToken(@requestBody() body: RefreshTokenRequestDto, @Req() req: Request, @Res() res: Response) {
@@ -39,7 +39,7 @@ export default class AuthController extends BaseController {
 
   @httpPost(
     '/register',
-    useHeaderMiddleware(),
+    multer().none(),
     useRequestMiddleware(RegisterRequestDto)
   )
   async register(@requestBody() body: RegisterRequestDto, @Req() req: Request, @Res() res: Response) {

@@ -6,12 +6,16 @@ create table public.trx_submission_period
             primary key,
     name       varchar(100) not null,
     status     varchar(20)  not null,
-    start_date date         not null,
-    end_date   date         not null,
+    open_start_date date         not null,
+    open_end_date   date         not null,
+    review_start_date date         not null,
+    review_end_date   date         not null,
     created_by json,
     created_at timestamp(6) default CURRENT_TIMESTAMP,
     updated_by json,
-    updated_at timestamp(6)
+    updated_at timestamp(6),
+    deleted_by json,
+    deleted_at timestamp(6)
 );
 
 alter table public.trx_submission_period

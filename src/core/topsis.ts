@@ -2,30 +2,33 @@ export type Criteria = {
   readonly name: string;
   readonly score: number;
 }
-export type Person = {
+export type Person<PA> = {
   readonly id: number;
   readonly name: string;
-  readonly values: number[];
+  readonly criteria_values: Criteria[];
+  readonly attrs?: PA
 }
-export type Rank = {
-  person: Omit<Person, 'values'>,
+export type Rank<PA> = {
+  person: Omit<Person<PA>, 'criteria_values'>,
+  criteria_values: Criteria[],
   preference_value: number
 }
-export default class Topsis {
-  private person: Person[] = []
+export default class Topsis<PA> {
+  private person: Person<PA>[] = []
   constructor(private readonly criteria: Criteria[]) {
   }
   private round(value: number, decimalPlaces: number) {
     const factorOfTen = Math.pow(10, decimalPlaces)
     return Math.round(value * factorOfTen) / factorOfTen;
   }
-  addPerson(name: string, criteriaValues: number[]) {
+  addPerson(id: number, name: string, criteriaValues: Criteria[], attrs: PA = null) {
     if (criteriaValues.length != this.criteria.length)
       throw new Error('Invalid criteria values.')
     this.person.push({
-      id: this.person.length + 1,
+      id,
       name,
-      values: criteriaValues
+      criteria_values: criteriaValues,
+      attrs: attrs
     })
   }
   private validate() {
@@ -43,7 +46,11 @@ export default class Topsis {
   private getDataMatrix() {
     const rows: Array<number>[] = [];
     for (let i = 0; i < this.person.length; i++) {
-      rows.push(this.person[i].values)
+      const values: number[] = [];
+      for (const criteria of this.person[i].criteria_values) {
+        values.push(criteria.score);
+      }
+      rows.push(values)
     }
     return rows;
   }
@@ -136,21 +143,23 @@ export default class Topsis {
     }
     return preferences;
   }
-  private generateRank(preferences: number[]): Rank[] {
-    const ranks: Rank[] = [];
+  private generateRank(preferences: number[]): Rank<PA>[] {
+    const ranks: Rank<PA>[] = [];
     for (let i = 0; i < this.person.length; i++) {
       const person = this.person[i];
       ranks.push({
         person: {
           id: person.id,
-          name: person.name
+          name: person.name,
+          attrs: person.attrs
         },
-        preference_value: preferences[i]
+        criteria_values: person.criteria_values,
+        preference_value: preferences[i],
       })
     }
     return ranks;
   }
-  getRank(): Rank[] {
+  getRank(): Rank<PA>[] {
     this.validate();
     const preferences = this.getPreferences()
     const ranks = this.generateRank(preferences);

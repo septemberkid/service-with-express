@@ -6,18 +6,18 @@ import {Entity, PrimaryKey, Property} from '@mikro-orm/core';
 })
 export default class RelUserRoleEntity {
     @PrimaryKey({
-        type: 'int4',
+        columnType: 'int4',
         autoincrement: true
     })
     id: number;
 
     @Property({
-        type: 'int4',
+        columnType: 'int4',
     })
     user_id: number;
 
     @Property({
-        type: 'varchar',
+        columnType: 'varchar',
         length: 10
     })
     role_code: string

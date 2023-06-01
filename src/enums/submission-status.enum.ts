@@ -2,7 +2,7 @@ import { mapEnumToConst } from '@util/helpers';
 
 export enum SUBMISSION_STATUS_ENUM {
   NEW = 'NEW',
-  DRAFT = 'DRAFT',
+  SUBMITTED = 'SUBMITTED',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED'
 }

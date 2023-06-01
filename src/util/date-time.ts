@@ -13,7 +13,8 @@ export const isTimeNowOrAfter = (input: string, format: string): boolean => {
   return _m1 >= _m2;
 };
 
-export const nowAsTimestamp = () : string => moment().format('YYYY-MM-DD hh:mm:ss');
+export const nowAsTimestamp = () : string => now('YYYY-MM-DD hh:mm:ss');
+export const now = (format: string) : string => moment().format(format);
 export const epoch = (amount: number): number => Math.floor(amount/1000);
 export const generateTokenExpired = (amountSecond: number): number => epoch(moment().add(amountSecond,'seconds').valueOf());
 export const generateRefreshTokenExpired = (): {text: string, seconds: number} => {

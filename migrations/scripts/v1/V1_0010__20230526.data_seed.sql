@@ -1,6 +1,7 @@
 -- app role
 INSERT INTO "app_role" ("code", "name") VALUES ('STUDENT', 'MAHASISWA');
 INSERT INTO "app_role" ("code", "name") VALUES ('KAPRODI', 'KAPRODI');
+INSERT INTO "app_role" ("code", "name") VALUES ('SEKPRODI', 'SEKRETARIS PRODI');
 
 -- master faculty
 INSERT INTO "mst_faculty" ("id", "name") VALUES (1, 'Fakultas Ekonomi & Bisnis');
@@ -33,11 +34,15 @@ INSERT INTO "mst_study_program" ("id", "name", "faculty_id") VALUES (20, 'Progra
 INSERT INTO "mst_study_program" ("id", "name", "faculty_id") VALUES (21, 'Program Studi Perpustakaan & Sains Informasi', 5);
 INSERT INTO "mst_study_program" ("id", "name", "faculty_id") VALUES (22, 'Program Studi Produksi Film & Televisi ', 5);
 
-INSERT INTO "public"."mst_criteria" ("name", "score", "order") VALUES ('IPK',0.033819086228285,'1');
-INSERT INTO "public"."mst_criteria" ("name", "score", "order") VALUES ('Jumlah SKS yang diambil',0.184802000913143,'2');
-INSERT INTO "public"."mst_criteria" ("name", "score", "order") VALUES ('Kesesuaian Capaian Pembelajaran',0.232137495501076,'3');
-INSERT INTO "public"."mst_criteria" ("name", "score", "order") VALUES ('Nilai MK RPL',0.151324580396684,'4');
-INSERT INTO "public"."mst_criteria" ("name", "score", "order") VALUES ('Nilai MK Jarkom',0.0821974188547088,'5');
-INSERT INTO "public"."mst_criteria" ("name", "score", "order") VALUES ('Nilai MK Sistem Operasi',0.0821974188547088,'6');
-INSERT INTO "public"."mst_criteria" ("name", "score", "order") VALUES ('Nilai MK Basis Data',0.0821974188547088,'7');
-INSERT INTO "public"."mst_criteria" ("name", "score", "order") VALUES ('Nilai MK Pengembangan Aplikasi Berbasis Web',0.151324580396684,'8');
+INSERT INTO mst_lecture (nip, name, email, study_program_id) VALUES ('00000001', 'Ari Purno Wahyu, S.Kom., M.Kom.', 'ari.purno@widyatama.ac.id', 8);
+INSERT INTO mst_lecture (nip, name, email, study_program_id) VALUES ('00000002', 'Yan Puspitarani, S.T., M.T.', 'yan.puspitarani@widyatama.ac.id', 8);
+
+with firstLecture as (
+    INSERT INTO app_user (email, name, status, user_type, password) VALUES ('ari.purno@widyatama.ac.id', 'Ari Purno Wahyu, S.Kom., M.Kom.', 'ACTIVE', 'LECTURE', '$2b$10$XUfBc9IuhiTJM3tG33LHVeFVu88hIKeHnTO0y2wXGU6uUTiF9timi') RETURNING id
+)
+INSERT INTO rel_user_role (user_id, role_code) VALUES ((SELECT id from firstLecture), 'KAPRODI');
+
+with secondLecture as (
+    INSERT INTO app_user (email, name, status, user_type, password) VALUES ('yan.puspitarani@widyatama.ac.id', 'Yan Puspitarani, S.T., M.T.', 'ACTIVE', 'LECTURE', '$2b$10$XUfBc9IuhiTJM3tG33LHVeFVu88hIKeHnTO0y2wXGU6uUTiF9timi') RETURNING id
+)
+INSERT INTO rel_user_role (user_id, role_code) VALUES ((SELECT id from secondLecture), 'SEKPRODI');

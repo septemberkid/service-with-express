@@ -1,13 +1,17 @@
 import { provide } from 'inversify-binding-decorators';
 import TYPES from '@enums/types.enum';
 import { inject } from 'inversify';
-import { BucketItem, BucketItemStat, BucketStream, Client, UploadedObjectInfo } from 'minio';
+import {BucketItem, BucketItemStat, BucketStream, Client, Tag, UploadedObjectInfo} from 'minio';
 import PathPrefixer from '@service/minio/path-prefixer';
 import MinioException, { MINIO_OPERATION } from '@service/minio/minio.exception';
 import SourceAdapter from '@service/minio/source.adapter';
 import MinioHelper from '@service/minio/minio.helper';
 import { Configuration } from '@core/config';
 
+interface BucketItemWithTag extends Omit<BucketItem, 'lastModified'|'prefix'> {
+  readonly path: string,
+  readonly tags: Tag[],
+}
 @provide(TYPES.MINIO_SERVICE)
 export default class MinioService {
   private pathPrefixer: PathPrefixer;
@@ -127,5 +131,31 @@ export default class MinioService {
           resolve(bucketItems)
         })
     })
+  }
+
+  async listObjectWithTags(path: string): Promise<BucketItemWithTag[]> {
+    const bucketItems: BucketItem[] = await this.listObject(path);
+    return new Promise(async (resolve) => {
+      const result: BucketItemWithTag[] = [];
+      for (const value of bucketItems) {
+        const tags = await this.s3Client.getObjectTagging(
+            this.bucketName,
+            value.name
+        )
+        result.push({
+          name: this.getFileName(value.name),
+          tags: tags[tags.length-1] as unknown as Tag[],
+          path: value.name,
+          size: value.size,
+          etag: value.etag
+        })
+      }
+      resolve(result);
+    })
+  }
+
+  private getFileName(filepath: string) {
+    const parts = filepath.split('/')
+    return parts[parts.length - 1]
   }
 }

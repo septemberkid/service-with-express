@@ -29,8 +29,8 @@ export const getHeader = (req: Request, key: string) => {
 
 export const getClientName = (req: Request) => getHeader(req, 'x-client-name');
 
-export const isEmpty = (value: string|any[]|undefined) : boolean => {
-  return (typeof value === undefined) || (typeof value == 'string' && value.trim() == '') ||
+export const isEmpty = (value: string|any[]|number|undefined) : boolean => {
+  return (typeof value === 'undefined') || (typeof value == 'string' && value.trim() == '') ||
     (typeof value == 'object' && value.length == 0)
 }
 export const ltrim = (str: string, char: string) => {

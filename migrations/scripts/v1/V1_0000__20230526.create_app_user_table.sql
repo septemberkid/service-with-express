@@ -11,6 +11,7 @@ create table public.app_user
     status            varchar(20)  not null,
     created_at        timestamp(6) default CURRENT_TIMESTAMP,
     updated_at        timestamp(6),
+    deleted_at        timestamp(6),
     last_logged_in_at timestamp(6)
 );
 

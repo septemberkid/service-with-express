@@ -1,37 +1,32 @@
-import { controller, httpGet, httpPost } from 'inversify-express-utils';
+import {controller, httpGet, httpPost} from 'inversify-express-utils';
 import BaseController from '@controller/base.controller';
-import { inject } from 'inversify';
+import {inject} from 'inversify';
 import TYPES from '@enums/types.enum';
-import MinioService from '@service/minio/minio.service';
-import { generateUUID, isEmpty } from '@util/helpers';
-import { nowAsTimestamp } from '@util/date-time';
-import { requestBody } from 'inversify-express-utils/lib/decorators';
+import {generateUUID, isEmpty} from '@util/helpers';
+import {nowAsTimestamp} from '@util/date-time';
+import {requestBody} from 'inversify-express-utils/lib/decorators';
 import HttpException from '@exception/http.exception';
 import Encryptor from '@util/encryptor';
 import useRequestMiddleware from '@middleware/request.middleware';
-import FacultyPaginatedRequestDto from '@dto/master/faculty/faculty-paginated-request.dto';
-import { plainToInstance } from 'class-transformer';
-import { populateWhere } from '@util/query';
-import { requestQuery } from '@util/decorator';
-import MasterFacultyEntity from '@entity/master/master-faculty.entity';
-import ProgramStudyPaginatedRequestDto from '@dto/master/program-study/program-study-paginated-request.dto';
-import MasterStudyProgramEntity from '@entity/master/master-study-program.entity';
-import MstFacultyRepository from '@repository/master/mst.faculty.repository';
-import MstStudyProgramRepository from '@repository/master/mst.study.program.repository';
+import {plainToInstance} from 'class-transformer';
+import {requestQuery} from '@util/decorator';
+import ProgramStudyFilter from '@dto/master/program-study/program-study.filter';
+import FacultyRepository from '@repository/master/faculty.repository';
+import StudyProgramRepository from '@repository/master/study-program.repository';
+import FacultyFilter from '@dto/master/faculty/faculty.filter';
+import MstFacultyEntity from '@entity/master/mst-faculty.entity';
+import MstStudyProgramEntity from '@entity/master/mst-study-program.entity';
 
 @controller('/')
 export default class HomeController extends BaseController {
-  @inject<MinioService>(TYPES.MINIO_SERVICE)
-  private _minioService: MinioService;
-
-  @inject(TYPES.MST_FACULTY_REPOSITORY)
-  private readonly mstFacultyRepo: MstFacultyRepository
-  @inject(TYPES.MST_STUDY_PROGRAM_REPOSITORY)
-  private readonly mstProgramStudyRepo: MstStudyProgramRepository
+  @inject(TYPES.FACULTY_REPOSITORY)
+  private readonly facultyRepository: FacultyRepository
+  @inject(TYPES.STUDY_PROGRAM_REPOSITORY)
+  private readonly studyProgramRepository: StudyProgramRepository
 
   @httpGet('')
   async index() {
-    return this.success<string>(null, 'Server is running...');
+    return this.success<string>('', 'Server is running...');
   }
   @httpGet('generate-uuid')
   async generateUUID() {
@@ -55,37 +50,53 @@ export default class HomeController extends BaseController {
   }
   @httpGet(
     'public/faculty',
-    useRequestMiddleware(FacultyPaginatedRequestDto, 'query')
+    useRequestMiddleware(FacultyFilter, 'query')
   )
-  async getFacultyPaginatedList(@requestQuery() query: FacultyPaginatedRequestDto) {
-    query = plainToInstance(FacultyPaginatedRequestDto, query);
-    const where = populateWhere({
-      ilike: {
-        name: wrap => wrap(query.name, 'both')
-      },
-      eq: {
-        is_active: query.isActive
-      }
-    })
-    const { result, meta } = await this.mstFacultyRepo.pagination(MasterFacultyEntity, where, query);
+  async getFacultyPaginatedList(@requestQuery() query: FacultyFilter) {
+    query = plainToInstance(FacultyFilter, query);
+    const { result, meta } = await this.facultyRepository.page(
+        MstFacultyEntity,
+        {
+          name: {
+            $ilike: query.name
+          },
+          is_active: {
+            $eq: query.is_active,
+          },
+        },
+        query.order,
+        {
+          offset: query.offset,
+          limit: query.limit
+        }
+    );
     return this.paginated(result, meta);
   }
   @httpGet(
     'public/study-program',
-    useRequestMiddleware(ProgramStudyPaginatedRequestDto, 'query')
+    useRequestMiddleware(ProgramStudyFilter, 'query')
   )
-  async getProgramStudyPaginatedList(@requestQuery() query: ProgramStudyPaginatedRequestDto) {
-    query = plainToInstance(ProgramStudyPaginatedRequestDto, query);
-    const where = populateWhere({
-      ilike: {
-        name: wrapper => wrapper(query.name, 'both')
-      },
-      eq: {
-        faculty_id: query.facultyId,
-        is_active: query.isActive
-      }
-    })
-    const { result, meta } = await this.mstProgramStudyRepo.pagination(MasterStudyProgramEntity, where, query);
+  async getProgramStudyPaginatedList(@requestQuery() query: ProgramStudyFilter) {
+    query = plainToInstance(ProgramStudyFilter, query)
+    const { result, meta } = await this.studyProgramRepository.page(
+        MstStudyProgramEntity,
+        {
+          name: {
+            $ilike: query.name
+          },
+          is_active: {
+            $eq: query.is_active
+          },
+          faculty_id: {
+            $eq: query.faculty_id
+          }
+        },
+        query.order,
+        {
+          offset: query.offset,
+          limit: query.limit
+        }
+    );
     return this.paginated(result, meta);
   }
 }

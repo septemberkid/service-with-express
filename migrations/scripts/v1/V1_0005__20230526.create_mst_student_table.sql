@@ -12,7 +12,8 @@ create table public.mst_student
             references public.mst_study_program
             on update cascade on delete cascade,
     created_at       timestamp(6) default CURRENT_TIMESTAMP not null,
-    updated_at       timestamp(6)
+    updated_at       timestamp(6),
+    deleted_at       timestamp(6)
 );
 
 alter table public.mst_student

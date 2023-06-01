@@ -3,6 +3,7 @@ interface Base {
   readonly name: string;
 }
 export interface IAdditionalInfo {
+  readonly id: number;
   readonly identifier_id: string;
   readonly faculty?: Base;
   readonly study_program?: Base;

@@ -4,20 +4,20 @@ import {Entity, PrimaryKey, Property} from '@mikro-orm/core';
   tableName: 'mst_faculty',
   schema: 'public',
 })
-export default class MasterFacultyEntity {
+export default class MstFacultyEntity {
   @PrimaryKey({
-    type: 'int4',
+    columnType: 'int4',
     autoincrement: true
   })
   id: number;
 
   @Property({
-    type: 'string'
+    columnType: 'string'
   })
   name: string;
 
   @Property({
-    type: 'boolean',
+    columnType: 'boolean',
     default: true
   })
   is_active: boolean;

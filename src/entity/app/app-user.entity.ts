@@ -8,47 +8,45 @@ import TimestampEntity from '@entity/timestamp.entity';
 export default class AppUserEntity extends TimestampEntity {
   @PrimaryKey({
     autoincrement: true,
-    type: 'int4',
+    columnType: 'int4',
   })
   id: number;
 
   @Property({
-    type: 'varchar',
+    columnType: 'varchar',
     length: 100,
     unique: true,
   })
   email: string;
 
   @Property({
-    type: 'varchar',
+    columnType: 'varchar',
     length: 100,
   })
   name: string;
 
   @Property({
-    type: 'text',
+    columnType: 'text',
   })
   password: string;
 
   @Property({
-    type: 'varchar',
+    columnType: 'varchar',
     length: 20,
-    name: 'user_type'
   })
-  userType: string;
+  user_type: string;
 
   @Property({
-    type: 'varchar',
+    columnType: 'varchar',
     length: 20,
   })
   status: string;
 
   @Property({
-    type: 'timestamp',
+    columnType: 'timestamp',
     nullable: true,
-    name: 'last_logged_in_at'
   })
-  lastLoggedInAt: string;
+  last_logged_in_at: string;
   
   toJSON(strict = true, strip = ['password'], ...args: any[]): { [p: string]: any } {
     const o = wrap(this, true).toObject(...args);

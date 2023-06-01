@@ -1,32 +1,27 @@
 import {Entity, Property} from '@mikro-orm/core';
-import {ICreatedBy, IUpdatedBy} from '@interface/entity.interface';
-import {nowAsTimestamp} from '@util/date-time';
+import TimestampEntity from '@entity/timestamp.entity';
 
+export interface IPerson {
+    readonly id: number,
+    readonly name: string,
+}
 @Entity({abstract: true})
-export abstract class AuditEntity {
+export default class AuditEntity extends TimestampEntity {
     @Property({
         type: 'json',
-        nullable: true
-    })
-    created_by: ICreatedBy
-
-    @Property({
-        type: 'timestamp',
         nullable: true,
-        onCreate: () => nowAsTimestamp()
     })
-    created_at: string
+    created_by?: IPerson = null
 
     @Property({
         type: 'json',
         nullable: true
     })
-    updated_by: IUpdatedBy
+    updated_by?: IPerson = null
 
     @Property({
-        type: 'timestamp',
-        nullable: true,
-        onUpdate: () => nowAsTimestamp()
+        type: 'json',
+        nullable: true
     })
-    updated_at: string
+    deleted_by?: IPerson = null
 }
