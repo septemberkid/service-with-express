@@ -51,8 +51,10 @@ export default class DocumentServiceImpl implements DocumentService {
         for (const file of files) {
             const contextTag = file.tags.find(value => value.Key === 'context')
             if (contextTag) {
+                const tempUrl = await this.minioService.temporaryUrl(file.path)
                 result.push({
                     name: file.name,
+                    url: tempUrl,
                     path: file.path,
                     context: contextTag.Value,
                     etag: file.etag,

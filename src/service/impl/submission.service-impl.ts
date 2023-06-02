@@ -22,6 +22,7 @@ import SubmissionProcessRequestDto from '@dto/trx/submission/submission-process-
 import Topsis, {Criteria} from '@core/topsis';
 import {CriteriaScore} from '@core/criteria-score';
 import TrxSpkEntity from '@entity/trx/trx-spk.entity';
+import MstStudentEntity from '@entity/master/mst-student.entity';
 
 @provide(TYPES.SUBMISSION_SERVICE)
 export default class SubmissionServiceImpl implements SubmissionService {
@@ -145,13 +146,18 @@ export default class SubmissionServiceImpl implements SubmissionService {
         return entity;
     }
 
-    async detail(id: number, user: IUserPayload): Promise<SubmissionDetailInterface> {
+    async detail(id: number): Promise<SubmissionDetailInterface> {
         const entity = await this.em.findOne(TrxSubmissionEntity, {
             id
         })
         if (!entity)
             throw new HttpException(404, 'Submission not found.')
-        const documents = await this.documentService.getFiles(entity.period_id, user.additional_info.identifier_id)
+        const student = await this.em.findOne(MstStudentEntity, {
+            id: entity.student_id
+        })
+        if (!student)
+            throw new HttpException(404, 'Student not found.')
+        const documents = await this.documentService.getFiles(entity.period_id, student.nim)
         return {
             detail: entity,
             documents: documents

@@ -142,8 +142,7 @@ export default class SubmissionController extends BaseController {
     ) {
         this.validatePathParam(req, res);
         const result = await this.submissionService.detail(
-            parseInt(req.params.id),
-            req.user
+            parseInt(req.params.id)
         );
         return this.success(result);
     }
