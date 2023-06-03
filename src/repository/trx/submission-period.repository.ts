@@ -38,8 +38,9 @@ export default class SubmissionPeriodRepository extends BaseRepository<TrxSubmis
             deleted_at: null,
             deleted_by: null
         })
-        if (exist)
+        if (exist.length > 0) {
             throw new HttpException(400, 'Period sedang terbuka dalam rentang tanggal yang sama.')
+        }
          const entity = this.create({
             name: dto.name,
             start_date: dto.start_date,
