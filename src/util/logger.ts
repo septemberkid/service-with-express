@@ -76,8 +76,6 @@ export class Logger {
       this.logger.add(
         new winston.transports.Console({
           format: format.combine(
-            format.colorize(),
-            format.simple(),
             format.timestamp({
               format: 'YYYY-MM-DD HH:mm:ss'
             }),

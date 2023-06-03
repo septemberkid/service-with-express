@@ -22,8 +22,7 @@ import SubmissionProcessRequestDto from '@dto/trx/submission/submission-process-
 import Topsis, {Criteria} from '@core/topsis';
 import {CriteriaScore} from '@core/criteria-score';
 import TrxSpkEntity from '@entity/trx/trx-spk.entity';
-import MstStudentEntity from '@entity/master/mst-student.entity';
-import ROLE, {ROLE_ENUM} from '@enums/role.enum';
+import {ROLE_ENUM} from '@enums/role.enum';
 
 @provide(TYPES.SUBMISSION_SERVICE)
 export default class SubmissionServiceImpl implements SubmissionService {
@@ -50,10 +49,10 @@ export default class SubmissionServiceImpl implements SubmissionService {
         const today = now('YYYY-MM-DD');
         const row = await this.submissionPeriodRepository.findOne({
             status: PERIOD_STATUS.OPEN,
-            open_start_date: {
+            start_date: {
                 $lte: today
             },
-            open_end_date: {
+            end_date: {
                 $gte: today
             },
             deleted_at: null,
@@ -64,23 +63,6 @@ export default class SubmissionServiceImpl implements SubmissionService {
         return row;
     }
 
-    async getReviewSubmission() {
-        const today = now('YYYY-MM-DD');
-        const row = await this.submissionPeriodRepository.findOne({
-            status: PERIOD_STATUS.REVIEW,
-            review_start_date: {
-                $lte: today
-            },
-            review_end_date: {
-                $gte: today
-            },
-            deleted_at: null,
-            deleted_by: null
-        })
-        if (!row)
-            throw new HttpException(400, 'Saat ini tidak ada periode untuk review.')
-        return row;
-    }
     async saveBasicData(dto: SubmissionBasicDataRequestDto, user: IUserPayload): Promise<TrxSubmissionEntity> {
         let entity: TrxSubmissionEntity;
         const person: IPerson = {
@@ -157,16 +139,15 @@ export default class SubmissionServiceImpl implements SubmissionService {
     async detail(id: number, user: IUserPayload): Promise<SubmissionDetailInterface> {
         const entity = await this.em.findOne(TrxSubmissionEntity, {
             id
+        }, {
+            populate: ['student']
         })
         if (!entity)
             throw new HttpException(404, 'Submission not found.')
         this.checkAccess(user, entity.student_id)
-        const student: MstStudentEntity = await this.em.findOne(MstStudentEntity, {
-            id: entity.student_id
-        })
-        if (!student)
+        if (!entity.student.getEntity())
             throw new HttpException(404, 'Student not found.')
-        const documents = await this.documentService.getFiles(entity.period_id, student.nim)
+        const documents = await this.documentService.getFiles(entity.period_id, entity.student.getEntity().nim)
         return {
             detail: entity,
             documents: documents

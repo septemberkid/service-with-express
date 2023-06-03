@@ -1,10 +1,14 @@
-import {injectable} from 'inversify';
 import BaseRepository from '@repository/base.repository';
 import TrxSubmissionPeriodEntity from '@entity/trx/trx-submission-period.entity';
 import SubmissionPeriodRequestDto from '@dto/trx/submission-period/submission-period-request.dto';
 import {RequestUserInterface} from '@interface/request-user.interface';
 import PERIOD_STATUS from '@enums/period-status.enum';
 import {isEmpty} from '@util/helpers';
+import {injectable} from 'inversify';
+import HttpException from '@exception/http.exception';
+import {now} from '@util/date-time';
+import TrxSubmissionEntity from '@entity/trx/trx-submission.entity';
+import SUBMISSION_STATUS from '@enums/submission-status.enum';
 
 @injectable()
 export default class SubmissionPeriodRepository extends BaseRepository<TrxSubmissionPeriodEntity>{
@@ -22,12 +26,24 @@ export default class SubmissionPeriodRepository extends BaseRepository<TrxSubmis
         dto: SubmissionPeriodRequestDto,
         req: RequestUserInterface
     ) {
-        const entity = this.create({
+        // check if period exist
+        const exist = await this.find({
+            status: PERIOD_STATUS.OPEN,
+            start_date: {
+                $gte: dto.start_date
+            },
+            end_date: {
+                $lte: dto.end_date
+            },
+            deleted_at: null,
+            deleted_by: null
+        })
+        if (exist)
+            throw new HttpException(400, 'Period sedang terbuka dalam rentang tanggal yang sama.')
+         const entity = this.create({
             name: dto.name,
-            open_start_date: dto.open_start_date,
-            open_end_date: dto.open_end_date,
-            review_start_date: dto.review_start_date,
-            review_end_date: dto.review_end_date,
+            start_date: dto.start_date,
+            end_date: dto.end_date,
             created_by: {
                 id: req.user.id,
                 name: req.user.name
@@ -43,10 +59,8 @@ export default class SubmissionPeriodRepository extends BaseRepository<TrxSubmis
     ) {
         const entity = await this.retrieve(dto.id);
         entity.name = dto.name;
-        entity.open_start_date = dto.open_start_date;
-        entity.open_end_date = dto.open_end_date;
-        entity.review_start_date = dto.review_start_date;
-        entity.review_end_date = dto.review_end_date;
+        entity.start_date = dto.start_date;
+        entity.end_date = dto.end_date;
         entity.status = dto.status;
         entity.updated_by = {
             id: req.user.id,
@@ -54,5 +68,35 @@ export default class SubmissionPeriodRepository extends BaseRepository<TrxSubmis
         }
         await this.em.persistAndFlush(entity);
         return entity;
+    }
+
+    async autoSubmitAndClose() {
+        await this.em.begin();
+        try {
+            const today = now('YYYY-MM-DD');
+            const periodList = await this.em.find(TrxSubmissionPeriodEntity, {
+                status: PERIOD_STATUS.OPEN,
+                end_date: {
+                    $eq: today
+                },
+                deleted_at: null,
+                deleted_by: null
+            });
+            if (periodList.length > 0) {
+                for (const period of periodList) {
+                    period.status = PERIOD_STATUS.CLOSED;
+                    await this.em.nativeUpdate(TrxSubmissionEntity, {
+                        period_id: period.id,
+                    }, {
+                        status: SUBMISSION_STATUS.SUBMITTED
+                    })
+                    await this.em.persistAndFlush(period);
+                }
+                await this.em.commit();
+            }
+        } catch (e) {
+            await this.em.rollback();
+            throw e;
+        }
     }
 }

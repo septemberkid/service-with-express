@@ -43,7 +43,10 @@ export const buildWhereQuery = <E>(entity: E, filter: FilterQuery<E>, withTrash:
   return filter;
 }
 
-export const convertOrder = (order?: string): {[key: string]: string} => {
+type ReturnOrderBy = {
+  [key: string]: ReturnOrderBy|string
+}
+export const convertOrder = (order?: string): ReturnOrderBy => {
   if (typeof order == 'undefined' || order == null)
     return null;
   const parts = order.split('|')
@@ -51,7 +54,18 @@ export const convertOrder = (order?: string): {[key: string]: string} => {
     throw ValidationException.newError('order', VALIDATION.INVALID_ORDER_PARAM, 'Invalid query parameter of order.')
   const field = parts[0]
   const direction = parts[1]
+  return buildOrderBy(field, direction == 'asc' ? QueryOrder.ASC_NULLS_LAST : QueryOrder.DESC_NULLS_LAST);
+}
+
+const buildOrderBy = (field: string, direction: string): ReturnOrderBy => {
+  const fields = field.split('.');
+  if (fields.length === 1) {
+    return {
+      [fields[0]]: direction
+    }
+  }
+  const [currentField, ...remainingFields] = fields;
   return {
-    [field]: direction == 'asc' ? QueryOrder.ASC_NULLS_LAST : QueryOrder.DESC_NULLS_LAST
+    [currentField]: buildOrderBy(remainingFields.join('.'), direction)
   }
 }

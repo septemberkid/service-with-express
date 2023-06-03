@@ -18,6 +18,7 @@ import SubmissionRepository from '@repository/trx/submission.repository';
 import TrxSubmissionEntity from '@entity/trx/trx-submission.entity';
 import ViewSpkResultRepository from '@repository/view/view-spk-result.repository';
 import ViewSpkResultEntity from '@entity/view/view-spk-result.entity';
+import ClosePeriodScheduler from '@scheduler/close-period.scheduler';
 export const bindings = new AsyncContainerModule(async (bind): Promise<void> => {
   const databaseClient: DatabaseClient = new DatabaseClient();
   const connection = await databaseClient.connect();
@@ -31,6 +32,7 @@ export const bindings = new AsyncContainerModule(async (bind): Promise<void> => 
   await newBindRepositories(bind, connection)
   await bindControllers(bind);
   await initMinio(bind);
+  await scheduler(bind);
 });
 
 const bindControllers = async (bind: interfaces.Bind) => {
@@ -73,4 +75,8 @@ const newBindRepositories = async (bind: interfaces.Bind, connection: MikroORM<P
   bind<SubmissionPeriodRepository>(TYPES.SUBMISSION_PERIOD_REPOSITORY).toDynamicValue(() => new SubmissionPeriodRepository(connection.em, TrxSubmissionPeriodEntity));
   bind<SubmissionRepository>(TYPES.SUBMISSION_REPOSITORY).toDynamicValue(() => new SubmissionRepository(connection.em, TrxSubmissionEntity));
   bind<ViewSpkResultRepository>(TYPES.VIEW_SPK_RESULT_REPOSITORY).toDynamicValue(() => new ViewSpkResultRepository(connection.em, ViewSpkResultEntity));
+}
+
+const scheduler = async (bind: interfaces.Bind) => {
+  bind<ClosePeriodScheduler>(TYPES.SCHEDULER).to(ClosePeriodScheduler).inSingletonScope();
 }

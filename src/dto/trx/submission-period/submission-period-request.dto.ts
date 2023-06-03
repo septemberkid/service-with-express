@@ -13,19 +13,11 @@ export default class SubmissionPeriodRequestDto {
 
     @IsNotEmpty()
     @IsString()
-    open_start_date: string;
+    start_date: string;
 
     @IsNotEmpty()
     @IsString()
-    open_end_date: string;
-
-    @IsNotEmpty()
-    @IsString()
-    review_start_date: string;
-
-    @IsNotEmpty()
-    @IsString()
-    review_end_date: string;
+    end_date: string;
 
     @IsNotEmpty()
     @IsString()

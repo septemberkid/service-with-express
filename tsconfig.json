@@ -54,6 +54,9 @@
       "@repository/*": [
         "repository/*"
       ],
+      "@scheduler/*": [
+        "scheduler/*"
+      ],
       "@service/*": [
         "service/*"
       ],

@@ -2,8 +2,7 @@ import { mapEnumToConst } from '@util/helpers';
 
 export enum PERIOD_STATUS_ENUM {
   OPEN = 'OPEN',
-  REVIEW = 'REVIEW',
-  FINAL = 'FINAL',
+  CLOSED = 'CLOSED',
 }
 
 const PERIOD_STATUS = mapEnumToConst(PERIOD_STATUS_ENUM);

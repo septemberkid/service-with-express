@@ -27,20 +27,10 @@ export default class TrxSubmissionPeriodEntity extends AuditEntity {
     @Property({
         columnType: 'date',
     })
-    open_start_date: string;
+    start_date: string;
 
     @Property({
         columnType: 'date',
     })
-    open_end_date: string;
-
-    @Property({
-        columnType: 'date',
-    })
-    review_start_date: string;
-
-    @Property({
-        columnType: 'date',
-    })
-    review_end_date: string;
+    end_date: string;
 }

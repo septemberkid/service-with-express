@@ -30,22 +30,12 @@ export default class SubmissionPeriodController extends BaseController {
     private readonly repo: SubmissionPeriodRepository
 
     private validateDateFormat(dto: SubmissionPeriodRequestDto, res: Response) {
-        if (!moment(dto.open_start_date, 'YYYY-MM-DD', true).isValid())
-            throw ValidationException.newError('open_start_date', VALIDATION.INVALID_DATE_FORMAT, res.__('validation.date.invalid_date_format', {format: 'YYYY-MM-DD'}));
-        if (!moment(dto.open_end_date, 'YYYY-MM-DD', true).isValid())
-            throw ValidationException.newError('open_end_date', VALIDATION.INVALID_DATE_FORMAT, res.__('validation.date.invalid_date_format', {format: 'YYYY-MM-DD'}));
-        if (!moment(dto.review_start_date, 'YYYY-MM-DD', true).isValid())
-            throw ValidationException.newError('review_start_date', VALIDATION.INVALID_DATE_FORMAT, res.__('validation.date.invalid_date_format', {format: 'YYYY-MM-DD'}));
-        if (!moment(dto.review_end_date, 'YYYY-MM-DD', true).isValid())
-            throw ValidationException.newError('review_end_date', VALIDATION.INVALID_DATE_FORMAT, res.__('validation.date.invalid_date_format', {format: 'YYYY-MM-DD'}));
-
-        if (!moment(dto.open_start_date).isBefore(moment(dto.open_end_date)))
-            throw ValidationException.newError('open_end_date', VALIDATION.INVALID_END_DATE, 'The open end date must be set after the open start date.');
-        if (!moment(dto.open_end_date).isBefore(moment(dto.review_start_date)))
-            throw ValidationException.newError('review_start_date', VALIDATION.INVALID_END_DATE, 'The review start date must be set after the open end date.');
-        if (!moment(dto.review_start_date).isBefore(moment(dto.review_end_date)))
-            throw ValidationException.newError('review_end_date', VALIDATION.INVALID_END_DATE, 'The review end date must be set after the review start date.');
-
+        if (!moment(dto.start_date, 'YYYY-MM-DD', true).isValid())
+            throw ValidationException.newError('start_date', VALIDATION.INVALID_DATE_FORMAT, res.__('validation.date.invalid_date_format', {format: 'YYYY-MM-DD'}));
+        if (!moment(dto.end_date, 'YYYY-MM-DD', true).isValid())
+            throw ValidationException.newError('end_date', VALIDATION.INVALID_DATE_FORMAT, res.__('validation.date.invalid_date_format', {format: 'YYYY-MM-DD'}));
+        if (!moment(dto.start_date).isBefore(moment(dto.end_date)))
+            throw ValidationException.newError('start_date', VALIDATION.INVALID_END_DATE, 'The open end date must be set after the open start date.');
     }
 
     @httpGet(

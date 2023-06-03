@@ -10,7 +10,6 @@ import SubmissionProcessRequestDto from '@dto/trx/submission/submission-process-
 
 export default interface SubmissionService {
     getOpenSubmission(): Promise<TrxSubmissionPeriodEntity>
-    getReviewSubmission(): Promise<TrxSubmissionPeriodEntity>
     saveBasicData(dto: SubmissionBasicDataRequestDto, user: IUserPayload): Promise<TrxSubmissionEntity>
     saveGrade(dto: SubmissionGradeDataRequestDto, user: IUserPayload): Promise<TrxSubmissionEntity>
     submit(dto: SubmissionSubmitRequestDto, user: IUserPayload): Promise<TrxSubmissionEntity>

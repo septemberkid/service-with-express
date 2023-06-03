@@ -6,13 +6,14 @@ import {QueryOrderMap} from '@mikro-orm/core/enums';
 import HttpException from '@exception/http.exception';
 import {RequestUserInterface} from '@interface/request-user.interface';
 import {nowAsTimestamp} from '@util/date-time';
+import {AutoPath} from '@mikro-orm/core/typings';
 
 interface IPageOption {
   readonly limit?: number;
   readonly offset?: number;
 }
 export default abstract class BaseRepository<E extends object> extends EntityRepository<E> {
-  public async page(
+  public async page<P extends string>(
       entity: {
         new (...args: string[]): E
       },
@@ -20,6 +21,7 @@ export default abstract class BaseRepository<E extends object> extends EntityRep
       order: string,
       pageOption: IPageOption = {limit: 20, offset: 0},
       withTrash = false,
+      populate: AutoPath<E, P>[] = []
   ): Promise<{
     readonly result: E[],
     readonly meta: PageMetaInterface,
@@ -31,7 +33,8 @@ export default abstract class BaseRepository<E extends object> extends EntityRep
     const records = await this.find(where, {
       limit: pageOption.limit,
       offset: pageOption.offset,
-      orderBy: orderBy
+      orderBy: orderBy,
+      populate
     })
     return {
       result: records,

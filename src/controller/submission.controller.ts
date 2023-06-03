@@ -50,14 +50,6 @@ export default class SubmissionController extends BaseController {
         return this.success(result);
     }
 
-    @httpGet(
-        '/review-period'
-    )
-    async reviewPeriod() {
-        const result = await this.submissionService.getReviewSubmission();
-        return this.success(result);
-    }
-
     @httpPost(
         '/save-basic-data',
         multer().none(),
@@ -171,7 +163,11 @@ export default class SubmissionController extends BaseController {
             {
                 offset: query.offset,
                 limit: query.limit
-            }
+            },
+            false,
+            [
+                'student'
+            ]
         );
         return this.paginated(result, meta);
     }
@@ -186,7 +182,6 @@ export default class SubmissionController extends BaseController {
         @requestBody() dto: SubmissionApprovalRequestDto,
         @Req() req: RequestUserInterface,
     ) {
-        await this.submissionService.getReviewSubmission();
         dto = plainToInstance(SubmissionApprovalRequestDto, dto)
         if (!Object.values(SUBMISSION_STATUS).includes(dto.status))
             throw ValidationException.newError('status', VALIDATION.INVALID_PARAM, 'Invalid param of status! (APPROVED, REJECTED)')
