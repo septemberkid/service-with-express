@@ -23,6 +23,10 @@ import Topsis, {Criteria} from '@core/topsis';
 import {CriteriaScore} from '@core/criteria-score';
 import TrxSpkEntity from '@entity/trx/trx-spk.entity';
 import {ROLE_ENUM} from '@enums/role.enum';
+import TrxSubmissionPeriodEntity from '@entity/trx/trx-submission-period.entity';
+import SubmissionEligibleRequestDto from '@dto/trx/submission/submission-eligible-request.dto';
+import {Response} from 'express';
+import {ACTION_ENUM} from '@enums/action.enum';
 
 @provide(TYPES.SUBMISSION_SERVICE)
 export default class SubmissionServiceImpl implements SubmissionService {
@@ -147,7 +151,7 @@ export default class SubmissionServiceImpl implements SubmissionService {
         this.checkAccess(user, entity.student_id)
         if (!entity.student.getEntity())
             throw new HttpException(404, 'Student not found.')
-        const documents = await this.documentService.getFiles(entity.period_id, entity.student.getEntity().nim)
+        const documents = await this.documentService.getFiles(entity.period_id, entity.id, entity.student.getEntity().nim)
         return {
             detail: entity,
             documents: documents
@@ -157,6 +161,7 @@ export default class SubmissionServiceImpl implements SubmissionService {
     async approval(dto: SubmissionApprovalRequestDto, user: IUserPayload): Promise<TrxSubmissionEntity> {
         const entity = await this.em.findOne(TrxSubmissionEntity, {
             id: dto.submission_id,
+            period_id: dto.period_id,
             status: SUBMISSION_STATUS.SUBMITTED
         })
 
@@ -178,6 +183,12 @@ export default class SubmissionServiceImpl implements SubmissionService {
     }
 
     async processSPK(dto: SubmissionProcessRequestDto, user: IUserPayload): Promise<boolean> {
+        const period = await this.em.findOne(TrxSubmissionPeriodEntity, {
+            id: dto.period_id,
+            status: PERIOD_STATUS.CLOSED
+        })
+        if (!period)
+            throw new HttpException(403, 'Periode saat ini masih dibuka.')
         const criteria: Criteria[] = [
             {name: 'Nilai IPK', score: CriteriaScore.ipk},
             {name: 'Total SKS', score: CriteriaScore.total_sks},
@@ -249,4 +260,28 @@ export default class SubmissionServiceImpl implements SubmissionService {
             throw new HttpException(500, e.message)
         }
     }
+
+    async eligible(dto: SubmissionEligibleRequestDto, user: IUserPayload, file: Express.Multer.File, res: Response): Promise<boolean> {
+        const entity = await this.em.findOne(TrxSubmissionEntity, {
+            id: dto.submission_id,
+            period_id: dto.period_id,
+            status: SUBMISSION_STATUS.APPROVED
+        }, {
+            populate: ['student']
+        })
+        if (!entity)
+            throw new HttpException(404, 'Data submission tidak ditemukan.')
+        try {
+            if (dto.action === ACTION_ENUM.ELIGIBLE) {
+                await this.documentService.uploadRecommendation(dto.period_id, dto.submission_id,file,entity.student.getEntity().nim,user,res);
+            }
+            entity.status = dto.action === ACTION_ENUM.ELIGIBLE ? SUBMISSION_STATUS.ELIGIBLE : SUBMISSION_STATUS.NOT_ELIGIBLE;
+            await this.em.persistAndFlush(entity);
+            return true;
+        } catch (e) {
+            throw e;
+        }
+    }
+
+
 }

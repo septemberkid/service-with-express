@@ -28,7 +28,13 @@ import SubmissionProcessRequestDto from '@dto/trx/submission/submission-process-
 import PaginationDto from '@dto/pagination.dto';
 import ViewSpkResultEntity from '@entity/view/view-spk-result.entity';
 import ViewSpkResultRepository from '@repository/view/view-spk-result.repository';
+import SubmissionEligibleRequestDto from '@dto/trx/submission/submission-eligible-request.dto';
 
+const storage = multer.memoryStorage();
+const upload = multer({
+    storage,
+    limits: { fileSize: 1024 * 1024 }, // 1Mb
+});
 @controller(
     '/submission', 
     useAuthMiddleware
@@ -114,13 +120,20 @@ export default class SubmissionController extends BaseController {
                 },
                 status: {
                     $eq: query.status
+                },
+                period_id: {
+                    $eq: query.period_id
                 }
             },
             query.order,
             {
                 offset: query.offset,
                 limit: query.limit
-            }
+            },
+            false,
+            [
+                'student'
+            ]
         );
         return this.paginated(result, meta);
     }
@@ -142,6 +155,7 @@ export default class SubmissionController extends BaseController {
 
     @httpGet(
         '/my-submissions',
+        useRoles(ROLE_ENUM.STUDENT)
     )
     async mySubmissions(
         @requestQuery() query: SubmissionFilter,
@@ -205,23 +219,44 @@ export default class SubmissionController extends BaseController {
     }
 
     @httpGet(
-        '/spk-result',
+        '/spk-result/:id',
         useRoles(ROLE_ENUM.KAPRODI, ROLE_ENUM.SEKPRODI),
         useRequestMiddleware(PaginationDto, 'query')
     )
     async spkResult(
-        @requestQuery() query: PaginationDto
+        @requestQuery() query: PaginationDto,
+        @Req() req: RequestUserInterface,
+        @Res() res: Response
     ) {
+        this.validatePathParam(req, res);
         query = plainToInstance(PaginationDto, query)
         const { result, meta } = await this.viewRepo.page(
             ViewSpkResultEntity,
-            {},
-            query.order,
+            {
+                period_id: parseInt(req.params.id)
+            },
+            'rank|asc',
             {
                 offset: query.offset,
                 limit: query.limit
             }
         );
         return this.paginated(result, meta);
+    }
+
+    @httpPost(
+        '/eligible',
+        upload.single('file'),
+        useRoles(ROLE_ENUM.KAPRODI, ROLE_ENUM.SEKPRODI),
+        useRequestMiddleware(SubmissionEligibleRequestDto, 'body')
+    )
+    async eligible(
+        @requestBody() dto: SubmissionEligibleRequestDto,
+        @Req() req: RequestUserInterface,
+        @Res() res: Response
+    ) {
+        dto = plainToInstance(SubmissionEligibleRequestDto, dto)
+        const result = await this.submissionService.eligible(dto, req.user, req.file, res);
+        return this.success(result);
     }
 }

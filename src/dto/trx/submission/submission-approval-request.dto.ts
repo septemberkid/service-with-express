@@ -5,6 +5,10 @@ import SUBMISSION_STATUS, {SUBMISSION_STATUS_ENUM} from '@enums/submission-statu
 export default class  SubmissionApprovalRequestDto {
     @IsNotEmpty()
     @Transform(({value}) => value ? parseInt(value) : null)
+    period_id: number;
+
+    @IsNotEmpty()
+    @Transform(({value}) => value ? parseInt(value) : null)
     submission_id: number;
 
     @IsNotEmpty()

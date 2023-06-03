@@ -1,5 +1,5 @@
 import BaseController from '@controller/base.controller';
-import {controller, httpGet, httpPost} from 'inversify-express-utils';
+import {controller, httpPost} from 'inversify-express-utils';
 import multer from 'multer';
 import {Req, Res} from 'routing-controllers';
 import {RequestUserInterface} from '@interface/request-user.interface';
@@ -40,7 +40,7 @@ export default class DocumentController extends BaseController {
         @Res() res: Response
     ) {
         dto = plainToInstance(UploadRequestDto, dto);
-        const result = await this.documentService.upload(dto.period_id, req.file, DOCUMENT_ENUM.FRS, req.user, res);
+        const result = await this.documentService.upload(dto.period_id, dto.submission_id, req.file, DOCUMENT_ENUM.FRS, req.user, res);
         return this.success(result);
     }
     @httpPost(
@@ -55,12 +55,7 @@ export default class DocumentController extends BaseController {
         @Res() res: Response
     ) {
         dto = plainToInstance(UploadRequestDto, dto);
-        const result = await this.documentService.upload(dto.period_id, req.file, DOCUMENT_ENUM.TRANSCRIPT, req.user, res);
+        const result = await this.documentService.upload(dto.period_id, dto.submission_id, req.file, DOCUMENT_ENUM.TRANSCRIPT, req.user, res);
         return this.success(result);
-    }
-
-    @httpGet('/generate-temp-url')
-    async generateTempUrl() {
-        return this.success(null);
     }
 }

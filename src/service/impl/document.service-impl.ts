@@ -22,7 +22,8 @@ export default class DocumentServiceImpl implements DocumentService {
     private minioService: MinioService
     
     async upload(
-        periodId: number, 
+        periodId: number,
+        submissionId: number,
         file: Express.Multer.File, 
         document: DOCUMENT_ENUM,
         user: IUserPayload, 
@@ -34,20 +35,31 @@ export default class DocumentServiceImpl implements DocumentService {
         if (!MinioHelper.isValidExtension(source, 'pdf'))
             throw ValidationException.newError('file', VALIDATION.INVALID_EXTENSION, res.__('validation.file_invalid_extension'))
         const newFilename = document.toLowerCase() + '.' + source.extension();
-        const objectName = this.getSubmissionPath(periodId, user.additional_info.identifier_id, newFilename);
+        const objectName = this.getSubmissionPath(periodId, submissionId, user.additional_info.identifier_id, newFilename);
         return this.minioService.write(source, objectName, `student-${document}`, user.id)
     }
 
-    private getPath(periodId: number, nim: string) {
-        return `${path}/${periodId}/${nim}`;
-    }
-    private getSubmissionPath(periodId: number, nim: string, filename: string) {
-        return `${this.getPath(periodId, nim)}/${filename}`;
+    async uploadRecommendation(periodId: number, submissionId: number, file: Express.Multer.File, nim: string, user: IUserPayload, res: Response): Promise<UploadedObjectInfo> {
+        if (file == null)
+            throw ValidationException.newError('file', VALIDATION.REQUIRED_FILE, res.__('validation.file_required'));
+        const source: SourceAdapter = MinioHelper.convertSource(file);
+        if (!MinioHelper.isValidExtension(source, 'pdf'))
+            throw ValidationException.newError('file', VALIDATION.INVALID_EXTENSION, res.__('validation.file_invalid_extension'))
+        const newFilename = DOCUMENT_ENUM.RECOMMENDATION_LETTER.toLowerCase() + '.' + source.extension();
+        const objectName = this.getSubmissionPath(periodId, submissionId, nim, newFilename);
+        return this.minioService.write(source, objectName, `student-${DOCUMENT_ENUM.RECOMMENDATION_LETTER}`, user.id)
     }
 
-    async getFiles(periodId: number, nim: string): Promise<IDocument[]> {
+    private getPath(periodId: number, submissionId: number, nim: string) {
+        return `${path}/period-${periodId}/${nim}/submission-${submissionId}`;
+    }
+    private getSubmissionPath(periodId: number, submissionId: number, nim: string, filename: string) {
+        return `${this.getPath(periodId, submissionId, nim)}/${filename}`;
+    }
+
+    async getFiles(periodId: number, submissionId: number, nim: string): Promise<IDocument[]> {
         const result: IDocument[] = [];
-        const files =  await this.minioService.listObjectWithTags(this.getPath(periodId, nim));
+        const files =  await this.minioService.listObjectWithTags(this.getPath(periodId, submissionId, nim));
         for (const file of files) {
             const contextTag = file.tags.find(value => value.Key === 'context')
             if (contextTag) {

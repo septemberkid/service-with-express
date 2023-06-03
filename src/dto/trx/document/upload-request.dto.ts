@@ -6,4 +6,9 @@ export default class UploadRequestDto {
     @IsNumber()
     @Transform(({value}) => parseInt(value))
     period_id: number
+
+    @IsNotEmpty()
+    @IsNumber()
+    @Transform(({value}) => parseInt(value))
+    submission_id: number
 }

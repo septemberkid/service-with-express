@@ -19,6 +19,11 @@ export default class ViewSpkResultEntity {
     period_id: number;
 
     @Property({
+        columnType: 'int4'
+    })
+    submission_id: number;
+
+    @Property({
         columnType: 'varchar',
         length: 100
     })
@@ -51,6 +56,12 @@ export default class ViewSpkResultEntity {
         columnType: 'json'
     })
     criteria: string;
+
+    @Property({
+        columnType: 'varchar',
+        length: 20
+    })
+    status: string;
 
     @Property({
         columnType: 'json',

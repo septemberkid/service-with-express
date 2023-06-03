@@ -7,6 +7,8 @@ import SubmissionSubmitRequestDto from '@dto/trx/submission/submission-submit-re
 import SubmissionDetailInterface from '@interface/submission-detail.interface';
 import SubmissionApprovalRequestDto from '@dto/trx/submission/submission-approval-request.dto';
 import SubmissionProcessRequestDto from '@dto/trx/submission/submission-process-request.dto';
+import SubmissionEligibleRequestDto from '@dto/trx/submission/submission-eligible-request.dto';
+import {Response} from 'express';
 
 export default interface SubmissionService {
     getOpenSubmission(): Promise<TrxSubmissionPeriodEntity>
@@ -16,4 +18,5 @@ export default interface SubmissionService {
     detail(id: number, user: IUserPayload): Promise<SubmissionDetailInterface>
     approval(dto: SubmissionApprovalRequestDto, user: IUserPayload): Promise<TrxSubmissionEntity>
     processSPK(dto: SubmissionProcessRequestDto, user: IUserPayload): Promise<boolean>
+    eligible(dto: SubmissionEligibleRequestDto, user: IUserPayload, file: Express.Multer.File, res: Response): Promise<boolean>
 }
