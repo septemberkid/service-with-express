@@ -23,6 +23,7 @@ import Topsis, {Criteria} from '@core/topsis';
 import {CriteriaScore} from '@core/criteria-score';
 import TrxSpkEntity from '@entity/trx/trx-spk.entity';
 import MstStudentEntity from '@entity/master/mst-student.entity';
+import ROLE, {ROLE_ENUM} from '@enums/role.enum';
 
 @provide(TYPES.SUBMISSION_SERVICE)
 export default class SubmissionServiceImpl implements SubmissionService {
@@ -37,6 +38,13 @@ export default class SubmissionServiceImpl implements SubmissionService {
 
     @inject<DocumentServiceImpl>(TYPES.DOCUMENT_SERVICE)
     private readonly documentService: DocumentServiceImpl;
+
+    private checkAccess(user: IUserPayload, submissionStudentId: number) {
+        if (user.user_type != ROLE_ENUM.STUDENT)
+            return;
+        if (user.additional_info.id != submissionStudentId)
+            throw new HttpException(403, 'You don\'t have access to this resource.')
+    }
 
     async getOpenSubmission() {
         const today = now('YYYY-MM-DD');
@@ -146,13 +154,14 @@ export default class SubmissionServiceImpl implements SubmissionService {
         return entity;
     }
 
-    async detail(id: number): Promise<SubmissionDetailInterface> {
+    async detail(id: number, user: IUserPayload): Promise<SubmissionDetailInterface> {
         const entity = await this.em.findOne(TrxSubmissionEntity, {
             id
         })
         if (!entity)
             throw new HttpException(404, 'Submission not found.')
-        const student = await this.em.findOne(MstStudentEntity, {
+        this.checkAccess(user, entity.student_id)
+        const student: MstStudentEntity = await this.em.findOne(MstStudentEntity, {
             id: entity.student_id
         })
         if (!student)
