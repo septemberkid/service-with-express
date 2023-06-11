@@ -29,6 +29,8 @@ import PaginationDto from '@dto/pagination.dto';
 import ViewSpkResultEntity from '@entity/view/view-spk-result.entity';
 import ViewSpkResultRepository from '@repository/view/view-spk-result.repository';
 import SubmissionEligibleRequestDto from '@dto/trx/submission/submission-eligible-request.dto';
+import {FilterQuery} from '@mikro-orm/core';
+import DocumentServiceImpl from '@service/impl/document.service-impl';
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -47,6 +49,8 @@ export default class SubmissionController extends BaseController {
 
     @inject<SubmissionServiceImpl>(TYPES.SUBMISSION_SERVICE)
     private readonly submissionService: SubmissionServiceImpl
+    @inject<DocumentServiceImpl>(TYPES.DOCUMENT_SERVICE)
+    private readonly documentService: DocumentServiceImpl;
 
     @httpGet(
         '/open-period'
@@ -202,7 +206,15 @@ export default class SubmissionController extends BaseController {
                 'student'
             ]
         );
-        return this.paginated(result, meta);
+
+        const data = []
+        for (const entity of result) {
+            const documents = await this.documentService.getFiles(entity.period_id, entity.id, entity.student.getEntity().nim)
+            entity.recommendation_letter = documents.find(item => item.name === 'recommendation_letter.pdf')
+            data.push(entity)
+        }
+
+        return this.paginated(data, meta);
     }
 
     @httpPost(

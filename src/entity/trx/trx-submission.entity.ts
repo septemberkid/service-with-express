@@ -2,6 +2,7 @@ import AuditEntity, {IPerson} from '@entity/audit.entity';
 import {Entity, ManyToOne, PrimaryKey, Property, Ref} from '@mikro-orm/core';
 import NumericType from '@core/NumericType';
 import MstStudentEntity from '@entity/master/mst-student.entity';
+import {IDocument} from '@interface/submission-detail.interface';
 
 @Entity({
     tableName: 'trx_submission',
@@ -120,7 +121,7 @@ export default class TrxSubmissionEntity extends AuditEntity {
         type: 'json',
         nullable: true,
     })
-    approved_by?: IPerson & {readonly reason?: string} = null
+    approved_by?: IPerson & {reason?: string} = null
 
     @Property({
         name: 'approved_at',
@@ -133,4 +134,10 @@ export default class TrxSubmissionEntity extends AuditEntity {
         ref: true
     })
     student?: Ref<MstStudentEntity>
+
+    @Property({
+        name: 'recommendation_letter',
+        nullable: true,
+    })
+    recommendation_letter?: IDocument;
 }
