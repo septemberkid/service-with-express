@@ -1,5 +1,6 @@
-import { IsEmail, IsNotEmpty, MaxLength, MinLength } from 'class-validator';
+import {IsEmail, IsNotEmpty, IsNumber, MaxLength, MinLength} from 'class-validator';
 import { SpecificEmailDomain } from '@util/decorator';
+import {Transform} from 'class-transformer';
 
 export default class RegisterRequestDto {
   @IsNotEmpty()
@@ -22,8 +23,12 @@ export default class RegisterRequestDto {
   public password: string;
 
   @IsNotEmpty()
-  public faculty_xid: string;
+  @IsNumber()
+  @Transform(({value}) => parseInt(value))
+  public faculty_id: number;
 
   @IsNotEmpty()
-  public study_program_xid: string;
+  @IsNumber()
+  @Transform(({value}) => parseInt(value))
+  public study_program_id: number;
 }

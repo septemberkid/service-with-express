@@ -11,24 +11,24 @@ export default class AppUserRoleEntity {
   id: number;
 
   @Property({
-    type: 'int',
+    columnType: 'int',
   })
   user_id: number;
 
   @Property({
-    type: 'varchar',
+    columnType: 'varchar',
     length: 10,
   })
   role_code: string;
 
   @Property({
-    type: 'int',
+    columnType: 'int',
     nullable: true
   })
   faculty_id: number;
 
   @Property({
-    type: 'int',
+    columnType: 'int',
     nullable: true
   })
   study_program_id: number;

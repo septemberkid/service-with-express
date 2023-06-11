@@ -6,17 +6,17 @@ import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
 })
 export default class AppRefreshTokenEntity {
   @PrimaryKey({
-    type: 'uuid'
+    columnType: 'uuid'
   })
   id: string;
   
   @Property({
-    type: 'int4',
+    columnType: 'int4',
   })
   user_id: number;
   
   @Property({
-    type: 'timestamp'
+    columnType: 'timestamp'
   })
   expired_at: string;
 }

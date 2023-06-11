@@ -1,18 +1,24 @@
-import { AsyncContainerModule, interfaces } from 'inversify';
+import {AsyncContainerModule, interfaces} from 'inversify';
 import DatabaseClient from '@core/database-client';
 import TYPES from '@enums/types.enum';
 import glob from 'glob';
 import path from 'path';
-import { GetRepository, MikroORM } from '@mikro-orm/core';
-import { EntityRepository, PostgreSqlDriver, SqlEntityManager } from '@mikro-orm/postgresql';
+import { MikroORM } from '@mikro-orm/core';
+import { PostgreSqlDriver, SqlEntityManager } from '@mikro-orm/postgresql';
 import { Client as MinioClient } from 'minio';
 import chalk from 'chalk';
 import { Configuration } from '@core/config';
-import MstFacultyRepository from '@repository/master/mst.faculty.repository';
-import MasterFacultyEntity from '@entity/master/master-faculty.entity';
-import MasterStudyProgramEntity from '@entity/master/master-study-program.entity';
-import MstStudyProgramRepository from '@repository/master/mst.study.program.repository';
-
+import MstFacultyEntity from '@entity/master/mst-faculty.entity';
+import MstStudyProgramEntity from '@entity/master/mst-study-program.entity';
+import FacultyRepository from '@repository/master/faculty.repository';
+import StudyProgramRepository from '@repository/master/study-program.repository';
+import SubmissionPeriodRepository from '@repository/trx/submission-period.repository';
+import TrxSubmissionPeriodEntity from '@entity/trx/trx-submission-period.entity';
+import SubmissionRepository from '@repository/trx/submission.repository';
+import TrxSubmissionEntity from '@entity/trx/trx-submission.entity';
+import ViewSpkResultRepository from '@repository/view/view-spk-result.repository';
+import ViewSpkResultEntity from '@entity/view/view-spk-result.entity';
+import ClosePeriodScheduler from '@scheduler/close-period.scheduler';
 export const bindings = new AsyncContainerModule(async (bind): Promise<void> => {
   const databaseClient: DatabaseClient = new DatabaseClient();
   const connection = await databaseClient.connect();
@@ -23,10 +29,10 @@ export const bindings = new AsyncContainerModule(async (bind): Promise<void> => 
     const em = connection.em;
     bind<SqlEntityManager<PostgreSqlDriver>>(TYPES.ENTITY_MANAGER).toConstantValue(em);
   }
-  await bindRepositories(bind, connection);
   await newBindRepositories(bind, connection)
   await bindControllers(bind);
   await initMinio(bind);
+  await scheduler(bind);
 });
 
 const bindControllers = async (bind: interfaces.Bind) => {
@@ -63,56 +69,14 @@ const initMinio = async (bind: interfaces.Bind) => {
     process.stdout.write(chalk.redBright(`${(error as Error).message}\n`));
   }
 }
-/**
- * @deprecated
- * @param bind
- * @param bindingName
- * @param connection
- * @param entity
- */
-const bindEntityToRepository = <T extends object, U>(
-  bind: interfaces.Bind,
-  bindingName: string,
-  connection: MikroORM<PostgreSqlDriver>,
-  entity: { new (...args: string[] & U) : T }
-): void => {
-  bind<GetRepository<T, EntityRepository<T>>>(bindingName)
-    .toDynamicValue((): GetRepository<T, EntityRepository<T>> => {
-      return connection.em.getRepository<T>(entity);
-    })
-    .inRequestScope();
-}
-
-/**
- * @deprecated
- */
-const bindRepositories = async (bind: interfaces.Bind, connection: MikroORM<PostgreSqlDriver>) => {
-  const entities = await new Promise((resolve, _) => {
-    glob(
-      path.join(
-        path.dirname(__dirname),
-        '/entity/**/*.entity.{ts,js}'
-      ),
-      (_, files) => {
-        resolve(files);
-      }
-    );
-  }).then(async (files: string[]) => {
-    const entities = await Promise.all(
-      files.map((f) => import(f.replace(__dirname, '.')))
-    );
-    return entities.map((c) => c.default);
-  });
-  entities.forEach((entity) => {
-    if (entity) {
-      const binding = `${entity.name}Repository`;
-      bindEntityToRepository(bind, binding, connection, entity);
-    }
-  });
-}
-
-
 const newBindRepositories = async (bind: interfaces.Bind, connection: MikroORM<PostgreSqlDriver>) => {
-  bind<MstFacultyRepository>(TYPES.MST_FACULTY_REPOSITORY).toDynamicValue(() => new MstFacultyRepository(connection.em, MasterFacultyEntity));
-  bind<MstStudyProgramRepository>(TYPES.MST_STUDY_PROGRAM_REPOSITORY).toDynamicValue(() => new MstStudyProgramRepository(connection.em, MasterStudyProgramEntity));
+  bind<FacultyRepository>(TYPES.FACULTY_REPOSITORY).toDynamicValue(() => new FacultyRepository(connection.em, MstFacultyEntity));
+  bind<StudyProgramRepository>(TYPES.STUDY_PROGRAM_REPOSITORY).toDynamicValue(() => new StudyProgramRepository(connection.em, MstStudyProgramEntity));
+  bind<SubmissionPeriodRepository>(TYPES.SUBMISSION_PERIOD_REPOSITORY).toDynamicValue(() => new SubmissionPeriodRepository(connection.em, TrxSubmissionPeriodEntity));
+  bind<SubmissionRepository>(TYPES.SUBMISSION_REPOSITORY).toDynamicValue(() => new SubmissionRepository(connection.em, TrxSubmissionEntity));
+  bind<ViewSpkResultRepository>(TYPES.VIEW_SPK_RESULT_REPOSITORY).toDynamicValue(() => new ViewSpkResultRepository(connection.em, ViewSpkResultEntity));
+}
+
+const scheduler = async (bind: interfaces.Bind) => {
+  bind<ClosePeriodScheduler>(TYPES.SCHEDULER).to(ClosePeriodScheduler).inSingletonScope();
 }

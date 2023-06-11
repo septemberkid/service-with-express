@@ -29,8 +29,8 @@ export const getHeader = (req: Request, key: string) => {
 
 export const getClientName = (req: Request) => getHeader(req, 'x-client-name');
 
-export const isEmpty = (value: string|any[]|undefined) : boolean => {
-  return (typeof value === undefined) || (typeof value == 'string' && value.trim() == '') ||
+export const isEmpty = (value: string|any[]|number|undefined) : boolean => {
+  return (typeof value === 'undefined') || (typeof value == 'string' && value.trim() == '') ||
     (typeof value == 'object' && value.length == 0)
 }
 export const ltrim = (str: string, char: string) => {
@@ -43,3 +43,10 @@ export const rtrim = (str: string, char: string) => {
     return str.replace('\\', '');
   return str.replace(regexTrim, '');
 }
+
+export const numToBoolean = (value: any, defaultValue: boolean) => {
+  if (typeof value == 'undefined')
+    return defaultValue;
+  const result = parseInt(value);
+  return result == 1;
+};

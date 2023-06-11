@@ -1,6 +1,6 @@
 import { Container, ContainerModule } from 'inversify';
 import { InversifyExpressServer } from 'inversify-express-utils';
-import express, { Router } from 'express';
+import express, {Router} from 'express';
 import chalk from 'chalk';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -19,6 +19,7 @@ import { Config } from '@core/config';
 
 export const createContainer = async (): Promise<Container> => {
   const container =  new Container({
+    autoBindInjectable: false,
     defaultScope: 'Singleton'
   })
   await container.loadAsync(bindings);
@@ -52,8 +53,7 @@ export const createServerApp = (container: Container, config: Config): express.A
     app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({extended: false}))
     app.use(express.static(config.get('APP_STATIC_PATH')))
-    if (config.get('NODE_ENV') == 'development')
-      app.use(morgan('dev'))
+    if (config.get('NODE_ENV') == 'development') app.use(morgan('dev'))
     app.use((req, res, _next) => {
       const connection = container.get<MikroORM>(TYPES.DATABASE_CONNECTION);
       RequestContext.create(connection.em, _next);

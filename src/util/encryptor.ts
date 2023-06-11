@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
-import JwtPayloadInterface from '@interface/jwt-payload.interface';
+import JwtPayloadInterface, {IAdditionalInfo} from '@interface/jwt-payload.interface';
 import { compareSync, genSaltSync, hashSync } from 'bcrypt';
 import Crypto from 'crypto';
 import { generateTokenExpired } from '@util/date-time';
@@ -44,10 +44,12 @@ export default class Encryptor {
       audience: params.audience
     });
     return {
-      xid: payload.xid as string,
-      name: payload.full_name as string,
-      roles: payload.roles as string[],
-      type: payload.user_type as string
+      id: payload.id as number,
+      name: payload.name as string,
+      email: payload.email as string,
+      user_type: payload.user_type as string,
+      additional_info: payload.additional_info as IAdditionalInfo || null,
+      roles: payload.roles as string[]
     }
   }
   static md5(plain: string): string {
