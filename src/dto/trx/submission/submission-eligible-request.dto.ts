@@ -17,4 +17,7 @@ export default class  SubmissionEligibleRequestDto {
 
     @IsOptional()
     file: Express.Multer.File;
+
+    @IsOptional()
+    reason: string;
 }

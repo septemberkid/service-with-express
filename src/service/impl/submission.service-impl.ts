@@ -275,7 +275,9 @@ export default class SubmissionServiceImpl implements SubmissionService {
             if (dto.action === ACTION_ENUM.ELIGIBLE) {
                 await this.documentService.uploadRecommendation(dto.period_id, dto.submission_id,file,entity.student.getEntity().nim,user,res);
             }
+            entity.approved_by.reason = dto.reason
             entity.status = dto.action === ACTION_ENUM.ELIGIBLE ? SUBMISSION_STATUS.ELIGIBLE : SUBMISSION_STATUS.NOT_ELIGIBLE;
+
             await this.em.persistAndFlush(entity);
             return true;
         } catch (e) {
