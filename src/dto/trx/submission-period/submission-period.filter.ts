@@ -16,4 +16,12 @@ export default class SubmissionPeriodFilter extends PaginationDto {
     @IsOptional()
     @Transform(({value}) => numToBoolean(value, false))
     with_trash?: boolean = false;
+
+    @IsOptional()
+    @IsString()
+    start_date: string
+
+    @IsOptional()
+    @IsString()
+    end_date: string
 }

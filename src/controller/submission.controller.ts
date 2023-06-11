@@ -112,19 +112,38 @@ export default class SubmissionController extends BaseController {
         @requestQuery() query: SubmissionFilter
     ) {
         query = plainToInstance(SubmissionFilter, query)
+        const where: FilterQuery<TrxSubmissionEntity> = {}
+        if (query.semester) {
+            where.semester = {
+                $eq: query.semester
+            }
+        }
+        if (query.status) {
+            where.status = {
+                $in: query.status.split(',')
+            }
+        }
+        if (query.period_id) {
+            where.period_id = {
+                $eq: query.period_id
+            }
+        }
+        if (query.keyword) {
+            where.student = {
+                $or: [{
+                    nim: {
+                        $ilike: `%${query.keyword}%`
+                    },
+                }, {
+                    name: {
+                        $ilike: `%${query.keyword}%`
+                    },
+                }],
+            }
+        }
         const { result, meta } = await this.repo.page(
             TrxSubmissionEntity,
-            {
-                semester: {
-                    $eq: query.semester
-                },
-                status: {
-                    $eq: query.status
-                },
-                period_id: {
-                    $eq: query.period_id
-                }
-            },
+            where,
             query.order,
             {
                 offset: query.offset,

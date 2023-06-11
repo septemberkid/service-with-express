@@ -50,6 +50,12 @@ export default class SubmissionPeriodController extends BaseController {
         const { result, meta } = await this.repo.page(
             TrxSubmissionPeriodEntity,
             {
+                start_date: {
+                    $lte: query.start_date,
+                },
+                end_date: {
+                    $gte: query.end_date,
+                },
                 name: {
                     $ilike: query.name
                 },
@@ -110,6 +116,9 @@ export default class SubmissionPeriodController extends BaseController {
         @Res() res: Response
     ) {
         this.validateDateFormat(dto, res);
+        if (!dto.status) {
+            delete dto.status
+        }
         const result = await this.repo.save(dto, req);
         return this.success(result);
     }

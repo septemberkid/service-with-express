@@ -17,4 +17,8 @@ export default class SubmissionFilter extends PaginationDto {
     @IsOptional()
     @IsString()
     status: SUBMISSION_STATUS_ENUM
+
+    @IsOptional()
+    @IsString()
+    keyword: string;
 }
