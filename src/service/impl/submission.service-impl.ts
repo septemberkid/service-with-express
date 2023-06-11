@@ -144,7 +144,7 @@ export default class SubmissionServiceImpl implements SubmissionService {
         const entity = await this.em.findOne(TrxSubmissionEntity, {
             id
         }, {
-            populate: ['student']
+            populate: ['student', 'student.studyProgram']
         })
         if (!entity)
             throw new HttpException(404, 'Submission not found.')
