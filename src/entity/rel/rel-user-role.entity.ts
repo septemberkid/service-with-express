@@ -1,4 +1,6 @@
-import {Entity, PrimaryKey, Property} from '@mikro-orm/core';
+import {Entity, ManyToOne, PrimaryKey, Property, Ref} from '@mikro-orm/core';
+import AppUserEntity from '@entity/app/app-user.entity';
+import AppRoleEntity from '@entity/app/app-role.entity';
 
 @Entity({
     tableName: 'rel_user_role',
@@ -18,7 +20,13 @@ export default class RelUserRoleEntity {
 
     @Property({
         columnType: 'varchar',
-        length: 10
+        length: 10,
     })
     role_code: string
+
+    @ManyToOne(() => AppUserEntity)
+    user?: Ref<AppUserEntity>
+
+    @ManyToOne(() => AppRoleEntity)
+    role?: Ref<AppUserEntity>
 }

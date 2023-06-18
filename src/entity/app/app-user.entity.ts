@@ -1,5 +1,7 @@
-import {Entity, PrimaryKey, Property, wrap} from '@mikro-orm/core';
+import {Collection, Entity, ManyToMany, PrimaryKey, Property, wrap} from '@mikro-orm/core';
 import TimestampEntity from '@entity/timestamp.entity';
+import AppRoleEntity from '@entity/app/app-role.entity';
+import RelUserRoleEntity from '@entity/rel/rel-user-role.entity';
 
 @Entity({
   tableName: 'app_user',
@@ -55,4 +57,12 @@ export default class AppUserEntity extends TimestampEntity {
     }
     return o;
   }
+
+  @ManyToMany({
+    entity: () => AppRoleEntity,
+    pivotEntity: () => RelUserRoleEntity,
+    joinColumns: ['user_id'],
+    inverseJoinColumns: ['role_code']
+  })
+  roles = new Collection<AppRoleEntity>(this)
 }
