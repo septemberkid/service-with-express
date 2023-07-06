@@ -24,9 +24,9 @@ export default class RelUserRoleEntity {
     })
     role_code: string
 
-    @ManyToOne(() => AppUserEntity)
+    @ManyToOne(() => AppUserEntity, {nullable: true})
     user?: Ref<AppUserEntity>
 
-    @ManyToOne(() => AppRoleEntity)
+    @ManyToOne(() => AppRoleEntity, {nullable: true})
     role?: Ref<AppUserEntity>
 }
